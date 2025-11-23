@@ -41,7 +41,7 @@ development_status:
   1-2-database-schema-clerk-integration: done
   1-3-employee-sso-registration: done
   1-4-invitation-code-registration-fallback: done
-  1-5-account-portability-employer-transfer: review
+  1-5-account-portability-employer-transfer: done
   epic-1-retrospective: optional
   
   epic-2: backlog

@@ -11,6 +11,7 @@ import { Resend } from "resend";
 import { TransferConfirmationEmail } from "@/components/emails/TransferConfirmationEmail";
 import { EmployeeTransferredNotification } from "@/components/emails/EmployeeTransferredNotification";
 import { EmployeeJoinedNotification } from "@/components/emails/EmployeeJoinedNotification";
+import React from "react";
 
 // Validation schema
 const transferCodeSchema = z.string().min(1, "Invitation code is required").max(50, "Invitation code is too long");
@@ -154,29 +155,53 @@ export async function transferEmployer(
         });
 
         // 8. Send email notifications (non-blocking - don't fail transfer if emails fail)
-        // TEMPORARILY DISABLED: Email rendering is causing server crashes (render$1 is not a function)
-        // TODO: Fix email rendering and re-enable
-        /*
         try {
             await Promise.all([
                 // Email to employee
                 resend.emails.send({
-                    from: "Stipends \u003cnoreply@stipends.app\u003e",
+                    from: "Stipends <noreply@stipends.app>",
                     to: currentEmployee.email,
                     subject: "Account Transfer Confirmation",
-                    react: TransferConfirmationEmail({
-                        firstName: currentEmployee.email.split("@")[0],
-                        oldEmployerName: oldOrg.name,
-                        newEmployerName: newOrg.name,
-                        dashboardUrl: "https://stipends.app/dashboard/employee",
-                    }),
+                    react: (
+                        <TransferConfirmationEmail
+                            firstName={currentEmployee.email.split("@")[0]}
+                            oldEmployerName={oldOrg.name}
+                            newEmployerName={newOrg.name}
+                            dashboardUrl="https://stipends.app/dashboard/employee"
+                        />
+                    ),
+                }),
+                // Email to old employer admin
+                resend.emails.send({
+                    from: "Stipends <noreply@stipends.app>",
+                    to: "admin@example.com", // TODO: Look up actual admin email
+                    subject: "Employee Transfer Notification",
+                    react: (
+                        <EmployeeTransferredNotification
+                            employeeName={`${currentEmployee.email.split("@")[0]}`}
+                            employeeEmail={currentEmployee.email}
+                            transferDate={new Date().toLocaleDateString()}
+                        />
+                    ),
+                }),
+                // Email to new employer admin
+                resend.emails.send({
+                    from: "Stipends <noreply@stipends.app>",
+                    to: "admin@example.com", // TODO: Look up actual admin email
+                    subject: "New Employee Joined via Transfer",
+                    react: (
+                        <EmployeeJoinedNotification
+                            employeeName={`${currentEmployee.email.split("@")[0]}`}
+                            employeeEmail={currentEmployee.email}
+                            transferDate={new Date().toLocaleDateString()}
+                        />
+                    ),
                 }),
             ]);
         } catch (emailError) {
             console.error("Failed to send transfer emails:", emailError);
             // Don't fail the transfer if emails fail
         }
-        */
 
         return {
             success: true,
