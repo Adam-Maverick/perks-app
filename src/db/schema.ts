@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, pgEnum, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, pgEnum, integer, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Enums
@@ -122,3 +122,87 @@ export const employersRelations = relations(employers, ({ one }) => ({
         references: [organizations.id],
     }),
 }));
+
+// ============================================
+// MARKETPLACE SCHEMA (Story 2.1)
+// ============================================
+
+// Trust Level Enum for Merchants
+export const trustLevelEnum = pgEnum('trust_level', ['VERIFIED', 'EMERGING']);
+
+// Categories Table
+export const categories = pgTable('categories', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    name: text('name').notNull(),
+    slug: text('slug').unique().notNull(),
+    icon: text('icon'), // Emoji or icon name
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Merchants Table
+export const merchants = pgTable('merchants', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    name: text('name').notNull(),
+    description: text('description'),
+    logoUrl: text('logo_url'),
+    trustLevel: trustLevelEnum('trust_level').notNull(),
+    location: text('location'), // e.g., "Lagos, Nigeria"
+    contactInfo: text('contact_info'), // JSON string with phone/email
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    trustLevelIdx: index('merchants_trust_level_idx').on(table.trustLevel),
+}));
+
+// Merchant Badges Table
+export const merchantBadges = pgTable('merchant_badges', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    merchantId: uuid('merchant_id').references(() => merchants.id).notNull(),
+    badgeType: text('badge_type').notNull(), // e.g., "VERIFIED", "TOP_RATED"
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Deals Table
+export const deals = pgTable('deals', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    merchantId: uuid('merchant_id').references(() => merchants.id).notNull(),
+    categoryId: uuid('category_id').references(() => categories.id).notNull(),
+    title: text('title').notNull(),
+    description: text('description'),
+    discountPercentage: integer('discount_percentage'), // e.g., 20 for 20%
+    originalPrice: integer('original_price').notNull(), // In kobo (e.g., 500000 for ₦5,000)
+    validUntil: timestamp('valid_until'),
+    inventoryCount: integer('inventory_count'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    categoryIdx: index('deals_category_id_idx').on(table.categoryId),
+    merchantIdx: index('deals_merchant_id_idx').on(table.merchantId),
+}));
+
+// Marketplace Relations
+export const categoriesRelations = relations(categories, ({ many }) => ({
+    deals: many(deals),
+}));
+
+export const merchantsRelations = relations(merchants, ({ many }) => ({
+    deals: many(deals),
+    badges: many(merchantBadges),
+}));
+
+export const merchantBadgesRelations = relations(merchantBadges, ({ one }) => ({
+    merchant: one(merchants, {
+        fields: [merchantBadges.merchantId],
+        references: [merchants.id],
+    }),
+}));
+
+export const dealsRelations = relations(deals, ({ one }) => ({
+    merchant: one(merchants, {
+        fields: [deals.merchantId],
+        references: [merchants.id],
+    }),
+    category: one(categories, {
+        fields: [deals.categoryId],
+        references: [categories.id],
+    }),
+}));
+

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context version="6.0">
+  <metadata>
+    <story-id>2.1</story-id>
+    <story-key>2-1-merchant-data-model-seed-data</story-key>
+    <story-title>Merchant Data Model &amp; Seed Data</story-title>
+    <epic>2 - Verified Marketplace</epic>
+    <generated-date>2025-11-23</generated-date>
+  </metadata>
+
+  <story>
+    <as-a>developer</as-a>
+    <i-want>to create the merchant and deals data model</i-want>
+    <so-that>we can store and display marketplace content</so-that>
+  </story>
+
+  <acceptance-criteria>
+    <criterion id="AC1">
+      <description>Given the database is initialized, when I define the merchant schema, then the following tables exist: merchants, deals, categories, merchant_badges</description>
+    </criterion>
+    <criterion id="AC2">
+      <description>Each merchant has fields: name, description, logo_url, trust_level (VERIFIED/EMERGING), location, contact_info</description>
+    </criterion>
+    <criterion id="AC3">
+      <description>Each deal has fields: title, description, discount_percentage, original_price, category_id, merchant_id, valid_until, inventory_count</description>
+    </criterion>
+    <criterion id="AC4">
+      <description>Categories include: Food, Transport, Utilities, Electronics, Wellness</description>
+    </criterion>
+    <criterion id="AC5">
+      <description>I can seed the database with 10 test merchants (5 VERIFIED, 5 EMERGING) and 30 deals</description>
+    </criterion>
+    <criterion id="AC6">
+      <description>All foreign keys and indexes are properly configured</description>
+    </criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="T1" ac-refs="AC1,AC2,AC3,AC4,AC6">
+      <description>Define Database Schema</description>
+      <subtasks>
+        <subtask>Create categories table (id, name, slug, icon, created_at)</subtask>
+        <subtask>Create merchants table (id, name, description, logo_url, trust_level, location, contact_info, created_at)</subtask>
+        <subtask>Create merchant_badges table (id, merchant_id, badge_type, created_at)</subtask>
+        <subtask>Create deals table (id, merchant_id, category_id, title, description, discount_percentage, original_price, valid_until, inventory_count, created_at)</subtask>
+        <subtask>Add foreign keys: deals.merchant_id -&gt; merchants.id, deals.category_id -&gt; categories.id</subtask>
+        <subtask>Add indexes on foreign keys and frequently queried fields (e.g., merchants.trust_level, deals.category_id)</subtask>
+        <subtask>Define Zod schemas for validation in src/lib/validators</subtask>
+      </subtasks>
+    </task>
+    <task id="T2" ac-refs="AC5">
+      <description>Create Seed Script</description>
+      <subtasks>
+        <subtask>Create src/db/seed.ts</subtask>
+        <subtask>Implement logic to clear existing data (optional/careful)</subtask>
+        <subtask>Seed 5 fixed categories (Food, Transport, Utilities, Electronics, Wellness)</subtask>
+        <subtask>Seed 5 VERIFIED merchants with realistic Nigerian data</subtask>
+        <subtask>Seed 5 EMERGING merchants with realistic Nigerian data</subtask>
+        <subtask>Seed 30 deals distributed across merchants and categories</subtask>
+        <subtask>Ensure realistic images (placeholders) and descriptions</subtask>
+      </subtasks>
+    </task>
+    <task id="T3" ac-refs="AC1,AC5">
+      <description>Run Migration and Seed</description>
+      <subtasks>
+        <subtask>Run npx drizzle-kit push to apply schema</subtask>
+        <subtask>Run npm run db:seed to populate data</subtask>
+        <subtask>Verify data in Neon console or via Drizzle Studio</subtask>
+      </subtasks>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics - Story 2.1: Merchant Data Model &amp; Seed Data</title>
+        <section>Epic 2: Verified Marketplace</section>
+        <snippet>Prerequisites: Story 1.2. Technical Notes: Define schemas in src/db/schema.ts, Create merchants table with trust_level enum, Create deals table with merchant_id foreign key, Create categories table (pre-populated with 5 categories), Create seed script src/db/seed.ts with realistic Nigerian merchant data.</snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>PRD - Verified Merchant Marketplace</title>
+        <section>MVP - Minimum Viable Product</section>
+        <snippet>FR4: Merchant directory with "Verified" (Trusted) and "Emerging" (Escrow-Protected) badges. Deal browsing with category filters (Food, Transport, Utilities, Electronics, Wellness). Search functionality with location-based recommendations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture - Data Architecture</title>
+        <section>Key Models</section>
+        <snippet>Deal: Offer from a Merchant. Database: Neon (Serverless Postgres) + Drizzle ORM. Naming Conventions: Database Tables: snake_case (e.g., user_profiles, created_at).</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>src/db/schema.ts</path>
+        <kind>database schema</kind>
+        <symbol>existing tables and patterns</symbol>
+        <lines>1-125</lines>
+        <reason>Reference for table structure patterns, enum definitions, relations, foreign key patterns, and Drizzle ORM usage. Shows existing pgEnum pattern, pgTable structure with uuid/text/timestamp/integer types, and relations() pattern.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="drizzle-orm" version="^0.44.7"/>
+        <package name="drizzle-kit" version="^0.31.7"/>
+        <package name="@neondatabase/serverless" version="^1.0.2"/>
+        <package name="zod" version="^4.1.12"/>
+        <package name="typescript" version="^5"/>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>Drizzle Schema Pattern</name>
+      <kind>ORM schema definition</kind>
+      <signature>export const tableName = pgTable('table_name', { ... }); export const enumName = pgEnum('enum_name', ['value1', 'value2']);</signature>
+      <path>src/db/schema.ts</path>
+    </interface>
+    <interface>
+      <name>Drizzle Relations Pattern</name>
+      <kind>ORM relations definition</kind>
+      <signature>export const tableRelations = relations(table, ({ one, many }) =&gt; ({ ... }));</signature>
+      <path>src/db/schema.ts</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>Use Drizzle ORM for all schema definitions in src/db/schema.ts</constraint>
+    <constraint>Use pgEnum() for enum types before defining tables that reference them</constraint>
+    <constraint>Use pgTable() with fields defined using imported types: uuid(), text(), timestamp(), integer()</constraint>
+    <constraint>Follow existing naming convention: snake_case for table names and column names</constraint>
+    <constraint>Add .defaultNow().notNull() for created_at/updated_at timestamp fields</constraint>
+    <constraint>Use .references() for foreign keys, matching pattern: .references(() =&gt; parentTable.id)</constraint>
+    <constraint>Define relations using relations() helper after table definitions</constraint>
+    <constraint>Seed script should use realistic Nigerian merchant names (e.g., Chicken Republic, Bolt, Ikeja Electric)</constraint>
+    <constraint>trust_level enum must have exactly two values: VERIFIED and EMERGING (matching PRD specification)</constraint>
+    <constraint>Categories must include exactly: Food, Transport, Utilities, Electronics, Wellness</constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      No existing test infrastructure found in project. Manual verification required via Drizzle Studio or SQL client to verify schema creation and seed data integrity.
+    </standards>
+    <locations>
+      <location>No test directory found</location>
+    </locations>
+    <ideas>
+      <idea ac-ref="AC1">Verify all four tables (merchants, deals, categories, merchant_badges) exist in database after migration</idea>
+      <idea ac-ref="AC2">Query merchants table and verify all required fields exist with correct types</idea>
+      <idea ac-ref="AC3">Query deals table and verify all required fields exist with correct types</idea>
+      <idea ac-ref="AC4">Query categories table and verify exactly 5 categories exist with correct names</idea>
+      <idea ac-ref="AC5">Count rows: merchants should have 10 (5 VERIFIED + 5 EMERGING), deals should have 30</idea>
+      <idea ac-ref="AC6">Verify foreign key constraints exist using Postgres information_schema queries</idea>
+    </ideas>
+  </tests>
+</story-context>

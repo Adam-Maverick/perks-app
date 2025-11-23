@@ -45,8 +45,8 @@ development_status:
   epic-1-retrospective: optional
   
   epic-2: backlog
-  2-1-merchant-data-model-seed-data: backlog
-  2-2-merchant-directory-page: backlog
+  2-1-merchant-data-model-seed-data: done
+  2-2-merchant-directory-page: done
   2-3-deal-browsing-with-category-filters: backlog
   2-4-search-functionality-with-location-recommendations: backlog
   2-5-offline-deal-caching-pwa: backlog

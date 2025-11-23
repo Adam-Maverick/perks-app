@@ -1,0 +1,279 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.2</storyId>
+    <title>Merchant Directory Page</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-23</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/2-2-merchant-directory-page.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employee</asA>
+    <iWant>view a directory of all verified merchants</iWant>
+    <soThat>I can discover trusted brands offering deals</soThat>
+    <tasks>
+      - Create Marketplace Page Route (AC: 1, 5)
+      - Fetch Merchants Data (AC: 1, 4)
+      - Build MerchantCard Component (AC: 1, 2, 3, 4, 7)
+      - Implement Trust Badge Component (AC: 2, 3, 7)
+      - Add Loading States (AC: 6)
+      - Optimize Performance (AC: 6)
+      - Testing and Verification (AC: 1-7)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">
+      <given>I am logged in as an employee</given>
+      <when>I navigate to /dashboard/employee/marketplace</when>
+      <then>I see a grid of merchant cards (logo, name, trust badge, deal count)</then>
+    </criterion>
+    <criterion id="AC2">
+      <description>VERIFIED merchants display a green checkmark badge</description>
+    </criterion>
+    <criterion id="AC3">
+      <description>EMERGING merchants display an orange "Escrow Protected" badge</description>
+    </criterion>
+    <criterion id="AC4">
+      <description>Each card shows the number of active deals (e.g., "12 deals available")</description>
+    </criterion>
+    <criterion id="AC5">
+      <description>Clicking a merchant card navigates to /dashboard/employee/marketplace/[merchantId]</description>
+    </criterion>
+    <criterion id="AC6">
+      <description>The page loads in under 2 seconds on 3G</description>
+    </criterion>
+    <criterion id="AC7">
+      <description>The UI matches the UX Design spec (Outfit headings, Inter body, Electric Royal Blue primary color)</description>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Stipends - Epic Breakdown</title>
+        <section>Epic 2: Verified Marketplace - Story 2.2</section>
+        <snippet>Merchant Directory Page enables employees to view a grid of merchant cards with logos, names, trust badges (VERIFIED=green checkmark, EMERGING=orange escrow badge), and deal counts. Page must load in under 2 seconds on 3G and match UX Design spec with Outfit/Inter fonts and Electric Royal Blue primary color.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR4: Verified Merchant Marketplace</section>
+        <snippet>Merchant directory with "Verified" (Trusted) and "Emerging" (Escrow-Protected) badges. Deal browsing with category filters. NFR1 requires PWA First Contentful Paint &lt; 2s on 3G networks.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Project Structure</section>
+        <snippet>Dashboard routes organized under src/app/(dashboard)/employee for employee-specific views. Components follow Atomic Design: UI components in src/components/ui (generic), modules in src/components/modules (business-logic-aware). Use Server Components for data fetching, next/image for all assets.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Implementation Patterns</section>
+        <snippet>Server Actions for mutations in src/server/actions. TanStack Query for client-side data fetching. Component composition: UI atoms (buttons, inputs) in src/components/ui, business modules (DealCard, WalletWidget) in src/components/modules. Use kebab-case for files, PascalCase for components.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>UX Design Specification</title>
+        <section>Color System</section>
+        <snippet>Primary: Electric Royal Blue (#2563EB) for headers, navigation, trust badges. Secondary: Vibrant Coral (#FA7921) for CTAs, EMERGING badges. Accent: Electric Lime (#96E072) for success states. Background: Clean White (#FFFFFF), Soft Light Grey (#F8F9FA).</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>UX Design Specification</title>
+        <section>Typography</section>
+        <snippet>Headings: "Outfit" (Google Font) - geometric, modern, friendly for page titles, section headers, deal prices. Body: "Inter" (Google Font) - clean, highly legible for UI text, descriptions. Minimum 14px for body text.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>UX Design Specification</title>
+        <section>Component Library</section>
+        <snippet>Deal Card: Image + Title + Price + Badges + CTA. Trust badges ALWAYS appear on transactions. VERIFIED: green checkmark. EMERGING: orange shield with "Escrow Protected". Touch targets minimum 44x44px for mobile-first PWA.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/2-1-merchant-data-model-seed-data.md</path>
+        <title>Story 2.1: Merchant Data Model &amp; Seed Data</title>
+        <section>Completion Notes</section>
+        <snippet>Merchants table created with trustLevel enum (VERIFIED/EMERGING), 10 merchants seeded (5 VERIFIED: Chicken Republic, Shoprite, Bolt, Ikeja Electric, Jumia; 5 EMERGING), 30 deals distributed across categories. Type-safe relations defined for merchants → deals. Indexes on merchants.trustLevel for efficient filtering.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>merchants</symbol>
+        <lines>143-154</lines>
+        <reason>Merchants table definition with all required fields (id, name, description, logoUrl, trustLevel, location, contactInfo). Use this schema for querying merchants data.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>trustLevelEnum</symbol>
+        <lines>131</lines>
+        <reason>Trust level enum with VERIFIED and EMERGING values. Import this for type-safe trust level checks in components.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>deals</symbol>
+        <lines>165-179</lines>
+        <reason>Deals table with merchantId foreign key. Use for JOIN to aggregate deal count per merchant.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>merchantsRelations</symbol>
+        <lines>186-189</lines>
+        <reason>Type-safe relations for merchants → deals. Use Drizzle's relation queries for efficient data fetching with deal counts.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/index.ts</path>
+        <kind>database</kind>
+        <symbol>db</symbol>
+        <lines>1-10</lines>
+        <reason>Database connection instance. Import this to execute queries in Server Components and Server Actions.</reason>
+      </artifact>
+      <artifact>
+        <path>src/middleware.ts</path>
+        <kind>middleware</kind>
+        <symbol>middleware</symbol>
+        <lines>1-20</lines>
+        <reason>Route protection middleware using Clerk. Dashboard routes already protected, marketplace page will inherit this protection.</reason>
+      </artifact>
+      <artifact>
+        <path>src/app/layout.tsx</path>
+        <kind>layout</kind>
+        <symbol>RootLayout</symbol>
+        <lines>1-30</lines>
+        <reason>Root layout with Outfit and Inter fonts configured via next/font/google. Fonts already set up for use in components.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="next" version="^16.0.3" />
+        <package name="react" version="^19.2.0" />
+        <package name="react-dom" version="^19.2.0" />
+        <package name="drizzle-orm" version="^0.44.7" />
+        <package name="@clerk/nextjs" version="^6.35.4" />
+        <package name="@neondatabase/serverless" version="^1.0.2" />
+        <package name="tailwindcss" version="^3.4.1" />
+        <package name="typescript" version="^5" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Use Next.js 15 App Router with Server Components for initial data fetching (no client-side fetch for initial load)
+    - Follow Atomic Design: UI components in src/components/ui, module components in src/components/modules/marketplace
+    - Use Drizzle ORM for all database queries with type-safe relations
+    - Create reusable query functions in src/server/procedures/merchants.ts
+    - Use next/image for all merchant logos with lazy loading and optimization
+    - Implement Suspense boundaries for progressive loading with skeleton states
+    - File naming: kebab-case.tsx (e.g., merchant-card.tsx)
+    - Component naming: PascalCase (e.g., MerchantCard)
+    - Database tables: snake_case (e.g., trust_level)
+    - Target performance: First Contentful Paint &lt; 2s on 3G, Lighthouse Performance &gt; 90
+    - Mobile-first responsive design: test on screens as small as 320px width
+    - Touch targets minimum 44x44px for interactive elements
+    - Use Electric Royal Blue (#2563EB) for primary elements, Vibrant Coral (#FA7921) for EMERGING badges
+    - Typography: Outfit for headings, Inter for body text (minimum 14px)
+    - Trust badges MUST appear on all merchant cards (VERIFIED=green checkmark, EMERGING=orange shield)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Merchant Query Result</name>
+      <kind>database-query</kind>
+      <signature>
+        {
+          id: string (uuid),
+          name: string,
+          logoUrl: string | null,
+          trustLevel: 'VERIFIED' | 'EMERGING',
+          dealCount: number
+        }
+      </signature>
+      <path>src/server/procedures/merchants.ts</path>
+      <description>Query merchants with aggregated deal count using Drizzle ORM relations. Use sql`COUNT(deals.id)` for aggregation.</description>
+    </interface>
+    <interface>
+      <name>MerchantCard Props</name>
+      <kind>component-props</kind>
+      <signature>
+        {
+          id: string,
+          name: string,
+          logoUrl: string | null,
+          trustLevel: 'VERIFIED' | 'EMERGING',
+          dealCount: number
+        }
+      </signature>
+      <path>src/components/modules/marketplace/MerchantCard.tsx</path>
+      <description>Props for MerchantCard component. Receives merchant data and renders card with logo, name, trust badge, and deal count.</description>
+    </interface>
+    <interface>
+      <name>TrustBadge Props</name>
+      <kind>component-props</kind>
+      <signature>
+        {
+          trustLevel: 'VERIFIED' | 'EMERGING'
+        }
+      </signature>
+      <path>src/components/modules/marketplace/TrustBadge.tsx</path>
+      <description>Props for TrustBadge component. Renders appropriate badge based on trust level (VERIFIED=green checkmark, EMERGING=orange shield).</description>
+    </interface>
+    <interface>
+      <name>Next.js Image Component</name>
+      <kind>external-api</kind>
+      <signature>
+        &lt;Image src={string} alt={string} width={number} height={number} loading="lazy" /&gt;
+      </signature>
+      <path>next/image</path>
+      <description>Use for all merchant logos with lazy loading, automatic WebP optimization, and proper sizing.</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Manual testing with seeded data from Story 2.1 (10 merchants: 5 VERIFIED, 5 EMERGING, 30 deals). Verify badge display, navigation, responsive layout, loading states, and error handling. Performance testing using Chrome DevTools Network throttling (Fast 3G) and Lighthouse audit (target: Performance &gt; 90, First Contentful Paint &lt; 2s). No automated test infrastructure exists yet in project.
+    </standards>
+    <locations>
+      - Manual testing via browser (http://localhost:3000/dashboard/employee/marketplace)
+      - Chrome DevTools for performance testing (Network tab, Lighthouse)
+      - Drizzle Studio for database verification (npx drizzle-kit studio)
+    </locations>
+    <ideas>
+      <idea ac="AC1">
+        Test: Navigate to /dashboard/employee/marketplace while logged in as employee → Verify grid of merchant cards displays with logo, name, trust badge, deal count
+      </idea>
+      <idea ac="AC2">
+        Test: Load marketplace page → Verify VERIFIED merchants (Chicken Republic, Shoprite, Bolt, Ikeja Electric, Jumia) display green checkmark badge
+      </idea>
+      <idea ac="AC3">
+        Test: Load marketplace page → Verify EMERGING merchants display orange "Escrow Protected" badge with shield icon
+      </idea>
+      <idea ac="AC4">
+        Test: Verify each merchant card shows accurate deal count (e.g., "12 deals available") matching database aggregation
+      </idea>
+      <idea ac="AC5">
+        Test: Click merchant card → Verify navigation to /dashboard/employee/marketplace/[merchantId] (placeholder page acceptable for this story)
+      </idea>
+      <idea ac="AC6">
+        Test: Use Chrome DevTools Network throttling (Fast 3G) → Verify page loads in under 2 seconds → Run Lighthouse audit → Verify Performance score &gt; 90
+      </idea>
+      <idea ac="AC7">
+        Test: Inspect page elements → Verify Outfit font used for merchant names (headings) → Verify Inter font used for deal counts (body) → Verify Electric Royal Blue (#2563EB) used for primary elements
+      </idea>
+      <idea ac="Responsive">
+        Test: Resize browser to 320px width (mobile) → Verify layout adapts properly → Test on 1920px width (desktop) → Verify grid layout scales appropriately
+      </idea>
+      <idea ac="Loading">
+        Test: Slow down network → Verify skeleton loading states display while data loads → Verify smooth transition from skeleton to actual content
+      </idea>
+    </ideas>
+  </tests>
+</story-context>
