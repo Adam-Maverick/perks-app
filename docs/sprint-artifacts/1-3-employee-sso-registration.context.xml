@@ -1,0 +1,259 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.3</storyId>
+    <title>Employee SSO Registration</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-22</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-3-employee-sso-registration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employee</asA>
+    <iWant>to register using my company email via SSO</iWant>
+    <soThat>I can access the platform with minimal friction</soThat>
+    <tasks>
+### 1. Configure Clerk SSO Connections (AC: 1, 2)
+- [ ] Enable Google Workspace SSO in Clerk dashboard
+  - [ ] Configure OAuth consent screen and credentials
+  - [ ] Add authorized redirect URIs
+  - [ ] Test with a Google Workspace account
+- [ ] Enable Microsoft 365 SSO in Clerk dashboard
+  - [ ] Configure Azure AD app registration
+  - [ ] Add redirect URIs and API permissions
+  - [ ] Test with a Microsoft 365 account
+- [ ] Document SSO setup process for employer onboarding
+
+### 2. Create Employee Registration Flow (AC: 1, 3)
+- [ ] Create `/sign-up/[[...sign-up]]/page.tsx` route (if not exists from 1.2)
+  - [ ] Add Clerk `<SignUp />` component
+  - [ ] Configure appearance to match UX Design (Electric Royal Blue theme)
+  - [ ] Add email domain validation (only registered employer domains)
+- [ ] Configure Clerk Organization auto-join based on email domain
+  - [ ] Set up domain-based organization routing
+  - [ ] Test auto-linking with test organization
+
+### 3. Implement Post-Signup Redirect (AC: 4)
+- [ ] Configure Clerk redirect URLs in dashboard
+  - [ ] Set `afterSignUp` redirect to `/dashboard/employee`
+  - [ ] Set `afterSignIn` redirect to `/dashboard/employee`
+- [ ] Create `/dashboard/employee/page.tsx` (employee dashboard landing)
+  - [ ] Add basic layout with navigation
+  - [ ] Display welcome message with user name
+  - [ ] Add placeholder widgets (wallet, deals, tax shield)
+
+### 4. Create Employee Profile Component (AC: 5)
+- [ ] Create `src/components/modules/employee/EmployeeProfile.tsx`
+  - [ ] Fetch user metadata from Clerk
+  - [ ] Fetch organization data from Clerk
+  - [ ] Display: Name, Email, Employer Name, Profile Photo
+  - [ ] Add "Edit Profile" link (placeholder for future story)
+- [ ] Add profile component to employee dashboard
+- [ ] Style according to UX Design spec (Outfit headings, Inter body)
+
+### 5. Email Domain Validation (AC: 1)
+- [ ] Create `src/lib/validators/email-domain.ts`
+  - [ ] Implement domain extraction from email
+  - [ ] Query `organizations` table for matching domain
+  - [ ] Return validation result
+- [ ] Add validation to sign-up flow
+  - [ ] Show error if domain not registered: "Your company is not yet registered. Contact your HR department."
+  - [ ] Provide employer signup CTA for unregistered domains
+
+### 6. Testing &amp; Verification (AC: 6)
+- [ ] Test complete SSO flow with Google Workspace
+  - [ ] Sign up → SSO redirect → Auth → Dashboard
+  - [ ] Verify user record in `users` table
+  - [ ] Verify organization membership in `employees` table
+- [ ] Test complete SSO flow with Microsoft 365
+  - [ ] Same verification steps as Google
+- [ ] Measure flow completion time (target: &lt; 2 minutes)
+- [ ] Test error handling (invalid domain, SSO failure)
+- [ ] Verify middleware protection on `/dashboard/employee`
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+**Given** I am a new employee at a registered employer  
+**When** I visit the registration page and enter my company email  
+**Then** I am redirected to Clerk's SSO flow  
+**And** I can authenticate using my company's identity provider (Google Workspace, Microsoft 365)  
+**And** My account is automatically linked to my employer's organization in Clerk  
+**And** I am redirected to the employee dashboard after successful authentication  
+**And** My profile shows my name, email, and employer name  
+**And** The entire flow completes in under 2 minutes
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Security Architecture</section>
+        <snippet>Clerk handles identity. Middleware (middleware.ts) protects routes. Use auth() helper in Server Components to get user context. Organization membership is managed via Clerk Organizations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Component Composition</section>
+        <snippet>Follow Atomic Design principle. UI components in src/components/ui. Business-logic-aware components (e.g., DealCard, WalletWidget) in src/components/modules.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Technology Stack Details</section>
+        <snippet>Tailwind CSS with Electric Royal Blue (#2563EB), Vibrant Coral (#FA7921), Electric Lime (#96E072). Typography: Outfit for headings, Inter for body text. Ensure mobile responsiveness (min-width: 320px per NFR7).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Project Structure</section>
+        <snippet>Dashboard routes follow (dashboard)/employee/ pattern. Components follow modules/employee/ pattern. Validators in lib/validators/.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics</title>
+        <section>Story 1.3: Employee SSO Registration</section>
+        <snippet>Configure Clerk Organizations with SSO connections (Google, Microsoft). Create /signup route with Clerk's SignUp component. Implement post-signup redirect to /dashboard/employee. Create EmployeeProfile component displaying user metadata. Add email domain validation (only allow registered employer domains).</snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>PRD</title>
+        <section>FR1: Employee Account Creation</section>
+        <snippet>Employees can create accounts via Employer SSO or unique invitation code. SSO registration via company email (minimal friction onboarding).</snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>PRD</title>
+        <section>NFR1: Speed</section>
+        <snippet>PWA First Contentful Paint &lt; 2s on 3G networks. Critical for adoption in low-bandwidth areas.</snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>PRD</title>
+        <section>NFR7: Mobile Responsiveness</section>
+        <snippet>UI must be fully functional on screens as small as 320px width (supporting older Android devices common in target demographic).</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/1-2-database-schema-clerk-integration.md</path>
+        <title>Story 1.2</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Clerk is configured with Organization support. Use auth() helper to get orgId in Server Actions. Database schema (users, organizations, employees, employers) is ready. Webhook handlers will automatically create records on signup.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/app/layout.tsx</path>
+        <kind>layout</kind>
+        <symbol>RootLayout</symbol>
+        <lines>1-39</lines>
+        <reason>Root layout already includes ClerkProvider wrapper. Fonts (Outfit, Inter) are configured. Theme color set to Electric Royal Blue (#2563EB).</reason>
+      </artifact>
+      <artifact>
+        <path>src/middleware.ts</path>
+        <kind>middleware</kind>
+        <symbol>clerkMiddleware</symbol>
+        <lines>1-19</lines>
+        <reason>Middleware already protects /dashboard/* routes. Will automatically protect new /dashboard/employee routes created in this story.</reason>
+      </artifact>
+      <artifact>
+        <path>src/app/(auth)/sign-in</path>
+        <kind>directory</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Sign-in route exists from Story 1.2. Sign-up route may need to be created or enhanced with SSO configuration and domain validation.</reason>
+      </artifact>
+      <artifact>
+        <path>src/app/(auth)/sign-up</path>
+        <kind>directory</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Sign-up route exists from Story 1.2. Needs enhancement with SSO configuration, domain validation, and custom styling.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>users, organizations, employees, employers</symbol>
+        <lines>1-52</lines>
+        <reason>Database schema defines all tables needed for SSO flow. users table stores Clerk user data. organizations table stores employer data. employees table links users to organizations. Webhook handlers from Story 1.2 will auto-populate these on signup.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@clerk/nextjs" version="^6.35.4">Clerk authentication SDK with Organization support</package>
+        <package name="@neondatabase/serverless" version="^1.0.2">Neon Postgres serverless driver</package>
+        <package name="drizzle-orm" version="^0.44.7">TypeScript ORM for database queries</package>
+        <package name="next" version="15.0.3">Next.js framework with App Router</package>
+        <package name="react" version="19.0.0-rc">React library</package>
+        <package name="tailwindcss" version="^3.4.1">Utility-first CSS framework</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Use Clerk Organizations for employer-employee relationships. Do not build custom auth.</constraint>
+    <constraint>All dashboard routes must be protected by middleware. Use /dashboard/employee/* pattern for employee routes.</constraint>
+    <constraint>Email domain validation must query organizations table to verify employer is registered.</constraint>
+    <constraint>Follow component structure: UI atoms in src/components/ui, feature modules in src/components/modules/employee.</constraint>
+    <constraint>Use Tailwind CSS with approved color palette: Electric Royal Blue (#2563EB) primary, Vibrant Coral (#FA7921) and Electric Lime (#96E072) accents.</constraint>
+    <constraint>Typography: Outfit font for headings (--font-outfit), Inter font for body text (--font-inter).</constraint>
+    <constraint>Ensure mobile responsiveness: minimum width 320px, touch targets at least 44x44px.</constraint>
+    <constraint>Performance target: First Contentful Paint &lt; 2s on 3G networks (NFR1).</constraint>
+    <constraint>SSO flow completion time must be under 2 minutes (AC #6).</constraint>
+    <constraint>Use Server Components for initial render where possible to minimize JavaScript bundle size.</constraint>
+    <constraint>Validate all inputs with Zod schemas. Return standardized ActionResponse type for Server Actions.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>auth() helper</name>
+      <kind>function</kind>
+      <signature>import { auth } from '@clerk/nextjs/server'; const { userId, orgId } = await auth();</signature>
+      <path>@clerk/nextjs/server</path>
+      <reason>Use in Server Components and Server Actions to get authenticated user context and organization ID.</reason>
+    </interface>
+    <interface>
+      <name>ClerkProvider</name>
+      <kind>component</kind>
+      <signature>&lt;ClerkProvider&gt;{children}&lt;/ClerkProvider&gt;</signature>
+      <path>src/app/layout.tsx</path>
+      <reason>Already configured in root layout. Provides Clerk context to all components.</reason>
+    </interface>
+    <interface>
+      <name>SignUp component</name>
+      <kind>component</kind>
+      <signature>import { SignUp } from '@clerk/nextjs'; &lt;SignUp appearance={{...}} afterSignUpUrl="/dashboard/employee" /&gt;</signature>
+      <path>@clerk/nextjs</path>
+      <reason>Clerk's pre-built sign-up component. Customize appearance to match UX Design. Configure redirect URLs.</reason>
+    </interface>
+    <interface>
+      <name>Database schema</name>
+      <kind>schema</kind>
+      <signature>users, organizations, employees, employers tables</signature>
+      <path>src/db/schema.ts</path>
+      <reason>Query organizations table for email domain validation. Clerk webhooks auto-populate users and organizations on signup.</reason>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing framework: Vitest (installed in package.json). Follow pattern from Story 1.2: create tests in src/db/__tests__/ or component-specific __tests__ directories. Manual testing required for SSO flows (Google Workspace, Microsoft 365) as they involve external OAuth providers. Automated tests should cover email domain validation logic and component rendering.
+    </standards>
+    <locations>
+      <location>src/db/__tests__/</location>
+      <location>src/components/**/__tests__/</location>
+      <location>src/lib/**/__tests__/</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test email domain validation: valid domain returns true, invalid domain returns false, query organizations table correctly</idea>
+      <idea ac="2">Test SSO redirect configuration: verify Clerk SignUp component has correct afterSignUpUrl prop</idea>
+      <idea ac="3">Manual test: Complete Google Workspace SSO flow, verify user record in database</idea>
+      <idea ac="3">Manual test: Complete Microsoft 365 SSO flow, verify user record in database</idea>
+      <idea ac="4">Test dashboard redirect: verify /dashboard/employee route exists and is protected by middleware</idea>
+      <idea ac="5">Test EmployeeProfile component: renders user name, email, organization name from Clerk data</idea>
+      <idea ac="6">Manual test: Measure SSO flow completion time with stopwatch, ensure &lt; 2 minutes</idea>
+      <idea ac="6">Test middleware protection: unauthenticated request to /dashboard/employee redirects to sign-in</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,247 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>5</storyId>
+    <title>Account Portability (Employer Transfer)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-22</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-5-account-portability-employer-transfer.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employee who changes jobs</asA>
+    <iWant>to transfer my account to my new employer</iWant>
+    <soThat>I retain my transaction history and don't lose my data</soThat>
+    <tasks>
+      - Create Transfer Settings Page (AC: 1)
+      - Implement Transfer Server Action (AC: 1, 2, 3, 4)
+      - Implement Notification System (AC: 5, 6)
+      - Add Audit Logging (NDPR Compliance)
+      - Update Employer Roster View (AC: 6)
+      - Testing &amp; Verification
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">
+      <given>I have an existing account linked to Employer A</given>
+      <when>I receive a new invitation code from Employer B AND I enter the code in my account settings</when>
+      <then>the system validates the code and confirms the transfer</then>
+    </criterion>
+    <criterion id="AC2">
+      <description>My account is unlinked from Employer A's organization</description>
+    </criterion>
+    <criterion id="AC3">
+      <description>My account is linked to Employer B's organization</description>
+    </criterion>
+    <criterion id="AC4">
+      <description>My transaction history and wallet balance are preserved</description>
+    </criterion>
+    <criterion id="AC5">
+      <description>I receive a confirmation email about the transfer</description>
+    </criterion>
+    <criterion id="AC6">
+      <description>Employer A's admin sees me as "Transferred" in their roster</description>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Stipends - Epic Breakdown</title>
+        <section>Story 1.5: Account Portability (Employer Transfer)</section>
+        <snippet>Employees can transfer their account to a new employer when changing jobs. The system validates invitation codes, unlinks from old organization, links to new organization, and preserves transaction history and wallet balance. Audit logging required for NDPR compliance.</snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR2: Debt Portability</section>
+        <snippet>Employees can transfer their account, history, and active balances to a new employer code without loss of data. This is a core "Freedom" feature ensuring employees maintain their data across job changes.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Server Actions for Mutations</section>
+        <snippet>All data mutations must use Next.js Server Actions with Zod validation and ActionResponse type. Pattern: define actions in src/server/actions with standardized error handling.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Data Architecture</section>
+        <snippet>User links to Employee or Employer profile. Wallet stores stipend balance linked to Employee. Transaction records all money movement. Foreign keys should reference user_id, not organization_id, to preserve data across transfers.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>UX Design Specification</title>
+        <section>Component Library</section>
+        <snippet>Use Atomic Design approach. Buttons: Primary (Royal Blue), Secondary (Coral). Email templates follow React Email structure with Outfit headings and Inter body text.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>invitations</symbol>
+        <lines>54-62</lines>
+        <reason>Existing invitations table schema - reuse for transfer codes. Contains code, employerId, email, usedAt, expiresAt fields.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>employees</symbol>
+        <lines>39-51</lines>
+        <reason>Employees table with organizationId field that needs to be updated during transfer. Status enum includes 'active', 'inactive', 'invited'.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>organizations</symbol>
+        <lines>19-26</lines>
+        <reason>Organizations table representing employers. Used to validate old and new organizations during transfer.</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/actions/invitations.ts</path>
+        <kind>server-action</kind>
+        <symbol>validateInvitationCode</symbol>
+        <lines>15-99</lines>
+        <reason>Existing invitation validation pattern with Zod validation, rate limiting (5 attempts/hour), and ActionResponse type. Reuse this pattern for transfer validation.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/emails/WelcomeEmail.tsx</path>
+        <kind>email-template</kind>
+        <symbol>WelcomeEmail</symbol>
+        <lines>all</lines>
+        <reason>Email template structure using React Email. Reference for creating transfer notification email templates.</reason>
+      </artifact>
+      <artifact>
+        <path>src/types/index.ts</path>
+        <kind>type-definition</kind>
+        <symbol>ActionResponse</symbol>
+        <lines>all</lines>
+        <reason>Standard response type for Server Actions: { success: boolean, data?: T, error?: string }. Use for transfer action.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@clerk/nextjs" version="^6.35.4" />
+        <package name="@neondatabase/serverless" version="^1.0.2" />
+        <package name="drizzle-orm" version="^0.44.7" />
+        <package name="next" version="15.0.3" />
+        <package name="react" version="19.0.0-rc-66855b96-20241106" />
+        <package name="resend" version="^6.5.2" />
+        <package name="zod" version="^4.1.12" />
+      </node>
+      <devDependencies>
+        <package name="drizzle-kit" version="^0.31.7" />
+        <package name="typescript" version="^5" />
+        <package name="vitest" version="^4.0.13" />
+      </devDependencies>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">
+      All data mutations MUST use Next.js Server Actions in src/server/actions with Zod validation and ActionResponse type.
+    </constraint>
+    <constraint type="architecture">
+      Database transactions MUST be atomic - use Drizzle's transaction API to ensure all-or-nothing updates.
+    </constraint>
+    <constraint type="data-integrity">
+      Foreign keys in transactions and wallets tables MUST reference user_id, NOT organization_id, to preserve data across transfers.
+    </constraint>
+    <constraint type="security">
+      Rate limiting MUST be applied to transfer attempts (reuse existing in-memory rate limiter or upgrade to persistent solution).
+    </constraint>
+    <constraint type="compliance">
+      NDPR compliance requires audit logging for all account transfers with timestamps, old org, new org, and user consent metadata.
+    </constraint>
+    <constraint type="validation">
+      Transfer MUST prevent same-organization transfers and verify invitation code belongs to different organization.
+    </constraint>
+    <constraint type="email">
+      Email templates MUST use React Email format with Resend for delivery. Send notifications to employee, old employer admin, and new employer admin.
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>validateInvitationCode</name>
+      <kind>server-action</kind>
+      <signature>async function validateInvitationCode(code: string, ip?: string): Promise&lt;ActionResponse&lt;{ employerName: string; employerId: string }&gt;&gt;</signature>
+      <path>src/server/actions/invitations.ts</path>
+      <description>Validates invitation code with rate limiting. Returns employer details if valid. Reuse this pattern for transfer validation.</description>
+    </interface>
+    <interface>
+      <name>transferEmployer</name>
+      <kind>server-action</kind>
+      <signature>async function transferEmployer(invitationCode: string): Promise&lt;ActionResponse&lt;{ newEmployerName: string }&gt;&gt;</signature>
+      <path>src/server/actions/transfer-employer.ts</path>
+      <description>NEW - Transfer employee to new employer. Validates code, updates organizationId, preserves data, sends notifications, logs audit trail.</description>
+    </interface>
+    <interface>
+      <name>invitations table</name>
+      <kind>database-schema</kind>
+      <signature>{ id: uuid, code: text, employerId: text, email: text, usedAt: timestamp, expiresAt: timestamp, createdAt: timestamp }</signature>
+      <path>src/db/schema.ts</path>
+      <description>Existing table for invitation codes. Reuse for transfer codes - no new schema needed.</description>
+    </interface>
+    <interface>
+      <name>employees table</name>
+      <kind>database-schema</kind>
+      <signature>{ id: uuid, userId: text, organizationId: text, email: text, role: text, status: enum, department: text, jobTitle: text, joinedAt: timestamp, createdAt: timestamp, updatedAt: timestamp }</signature>
+      <path>src/db/schema.ts</path>
+      <description>Employee records. Update organizationId field during transfer. Add 'transferred' to status enum or use separate audit table.</description>
+    </interface>
+    <interface>
+      <name>account_transfers table</name>
+      <kind>database-schema</kind>
+      <signature>{ id: uuid, userId: text, oldOrganizationId: text, newOrganizationId: text, invitationCode: text, transferredAt: timestamp, ipAddress: text, userAgent: text }</signature>
+      <path>src/db/schema.ts</path>
+      <description>NEW - Audit log for NDPR compliance. Track all transfer events with metadata.</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest for unit tests. Follow pattern from src/server/actions/invitations.test.ts. Test Server Actions with various scenarios (valid, invalid, edge cases). Manual testing recommended for end-to-end flows including email delivery.
+    </standards>
+    <locations>
+      - src/server/actions/*.test.ts (unit tests for server actions)
+      - tests/integration/ (integration tests - future)
+    </locations>
+    <ideas>
+      <test id="T1" for="AC1">
+        Test valid transfer flow: create invitation code for Org B, transfer from Org A to Org B, verify validation succeeds
+      </test>
+      <test id="T2" for="AC1">
+        Test invalid code rejection: attempt transfer with non-existent code, verify error message
+      </test>
+      <test id="T3" for="AC1">
+        Test same-organization prevention: attempt transfer with code from current organization, verify rejection
+      </test>
+      <test id="T4" for="AC1">
+        Test used code rejection: attempt transfer with already-used code, verify rejection
+      </test>
+      <test id="T5" for="AC2,AC3">
+        Test organization update: verify employees.organizationId changes from old to new
+      </test>
+      <test id="T6" for="AC4">
+        Test data preservation: verify transactions and wallet balance remain intact after transfer
+      </test>
+      <test id="T7" for="AC5">
+        Test email delivery: verify confirmation email sent to employee with correct details
+      </test>
+      <test id="T8" for="AC6">
+        Test roster update: verify old employer sees employee as "Transferred" in roster
+      </test>
+      <test id="T9" for="NDPR">
+        Test audit logging: verify account_transfers record created with all required metadata
+      </test>
+      <test id="T10" for="Rate Limiting">
+        Test rate limiting: attempt multiple transfers rapidly, verify rate limit enforcement
+      </test>
+    </ideas>
+  </tests>
+</story-context>

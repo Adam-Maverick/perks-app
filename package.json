@@ -1,0 +1,40 @@
+{
+    "name": "perks-app",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev --webpack",
+        "build": "next build --webpack",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@clerk/nextjs": "^6.35.4",
+        "@neondatabase/serverless": "^1.0.2",
+        "@serwist/next": "^9.2.1",
+        "@serwist/precaching": "^9.2.1",
+        "@serwist/sw": "^9.2.1",
+        "autoprefixer": "^10.4.22",
+        "drizzle-orm": "^0.44.7",
+        "next": "^16.0.3",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+        "resend": "^6.5.2",
+        "svix": "^1.81.0",
+        "zod": "^4.1.12"
+    },
+    "devDependencies": {
+        "@types/node": "^20",
+        "@types/react": "^18",
+        "@types/react-dom": "^18",
+        "dotenv": "^17.2.3",
+        "drizzle-kit": "^0.31.7",
+        "eslint": "^8",
+        "eslint-config-next": "15.0.3",
+        "postcss": "^8",
+        "tailwindcss": "^3.4.1",
+        "ts-node": "^10.9.2",
+        "typescript": "^5",
+        "vitest": "^4.0.13"
+    }
+}

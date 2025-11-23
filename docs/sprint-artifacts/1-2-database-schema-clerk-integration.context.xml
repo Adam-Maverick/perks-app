@@ -1,0 +1,74 @@
+<story-context>
+  <story-id>1.2</story-id>
+  <story-key>1-2-database-schema-clerk-integration</story-key>
+  <title>Database Schema &amp; Clerk Integration</title>
+  <status>ready-for-dev</status>
+  
+  <user-story>
+    <as-a>developer</as-a>
+    <i-want>to set up the database schema and Clerk authentication</i-want>
+    <so-that>users can securely register and log in</so-that>
+  </user-story>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Data Architecture &amp; Security Architecture</section>
+        <snippet>Key Models: User, Organization, Employee, Employer. Auth: Clerk handles identity. Authorization: Middleware protects routes.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics</title>
+        <section>Story 1.2: Database Schema &amp; Clerk Integration</section>
+        <snippet>Acceptance Criteria: Database connection via Drizzle, Clerk Org support, Webhooks for sync, Middleware protection.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/1-1-project-initialization-pwa-setup.md</path>
+        <title>Story 1.1</title>
+        <section>Dev Agent Record</section>
+        <snippet>Learnings: Serwist integration deferred, PWA icons missing, npm audit vulnerability to fix.</snippet>
+      </doc>
+    </docs>
+    
+    <code>
+      <item>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>users, organizations</symbol>
+        <reason>Target file for schema definitions</reason>
+      </item>
+      <item>
+        <path>src/middleware.ts</path>
+        <kind>middleware</kind>
+        <symbol>clerkMiddleware</symbol>
+        <reason>Auth protection for dashboard routes</reason>
+      </item>
+    </code>
+
+    <dependencies>
+      <dep name="drizzle-orm" version="latest" />
+      <dep name="@neondatabase/serverless" version="latest" />
+      <dep name="drizzle-kit" version="latest" />
+      <dep name="@clerk/nextjs" version="latest" />
+      <dep name="svix" version="latest" />
+      <dep name="@serwist/next" version="latest" />
+    </dependencies>
+  </artifacts>
+
+  <tests>
+    <standards>
+      Use Vitest for unit tests. Test server actions and webhook handlers. Ensure RLS logic is verified.
+    </standards>
+    <locations>
+      <loc>src/server/actions/__tests__</loc>
+      <loc>src/api/webhooks/__tests__</loc>
+    </locations>
+    <ideas>
+      <idea>Simulate Clerk webhook payload for user.created and verify DB insertion</idea>
+      <idea>Test middleware redirects unauthenticated users from /dashboard</idea>
+      <idea>Verify organization creation syncs to DB</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stipends - Design Direction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563EB', // Electric Royal Blue
+                        secondary: '#FA7921', // Vibrant Coral
+                        accent: '#96E072', // Electric Lime
+                        neutral: {
+                            50: '#F8F9FA',
+                            100: '#F1F5F9',
+                            900: '#111827'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .trust-shield-pulse {
+            animation: pulse-blue 2s infinite;
+        }
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        }
+    </style>
+</head>
+<body class="bg-neutral-50 text-neutral-900 antialiased selection:bg-secondary selection:text-white">
+
+    <!-- Mobile Frame Container -->
+    <div class="max-w-md mx-auto min-h-screen bg-white shadow-2xl relative overflow-hidden border-x border-neutral-200">
+        
+        <!-- Header / Top Bar -->
+        <header class="bg-primary text-white p-6 pb-12 relative overflow-hidden">
+            <!-- Abstract Background Pattern -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+            <div class="absolute bottom-0 left-0 w-32 h-32 bg-secondary opacity-20 rounded-full -ml-10 -mb-10 blur-xl"></div>
+
+            <div class="relative z-10 flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/10">
+                        <span class="font-display font-bold text-lg">S</span>
+                    </div>
+                    <div>
+                        <p class="text-blue-100 text-xs font-medium">Welcome back,</p>
+                        <h1 class="text-xl font-bold leading-tight">Adam</h1>
+                    </div>
+                </div>
+                <div class="relative">
+                    <button class="p-2 rounded-full bg-white/10 hover:bg-white/20 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </button>
+                    <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-secondary rounded-full border-2 border-primary"></span>
+                </div>
+            </div>
+
+            <!-- Wallet Card -->
+            <div class="glass-card bg-white/10 rounded-2xl p-5 text-white border border-white/20 shadow-lg backdrop-blur-md">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="text-blue-100 text-sm font-medium mb-1">Total Savings</p>
+                        <h2 class="text-3xl font-bold font-display">₦124,500</h2>
+                    </div>
+                    <div class="bg-accent/20 text-accent px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 8.586 15.586 4H12z" clip-rule="evenodd" />
+                        </svg>
+                        +12%
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-4">
+                    <div class="flex-1 bg-white/10 rounded-lg p-2 flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center text-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-blue-100 uppercase tracking-wide">Stipend</p>
+                            <p class="font-bold text-sm">₦45k</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 bg-white/10 rounded-lg p-2 flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center text-accent">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-blue-100 uppercase tracking-wide">Escrow</p>
+                            <p class="font-bold text-sm">Active</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="p-6 -mt-6 relative z-20 bg-neutral-50 rounded-t-3xl min-h-[500px]">
+            
+            <!-- Categories -->
+            <div class="flex justify-between gap-4 mb-8 overflow-x-auto pb-2 no-scrollbar">
+                <div class="flex flex-col items-center gap-2 min-w-[64px]">
+                    <div class="w-14 h-14 rounded-2xl bg-white shadow-sm border border-neutral-100 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors cursor-pointer group">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                    </div>
+                    <span class="text-xs font-medium text-neutral-600">All</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 min-w-[64px]">
+                    <div class="w-14 h-14 rounded-2xl bg-white shadow-sm border border-neutral-100 flex items-center justify-center text-neutral-400 hover:bg-secondary hover:text-white transition-colors cursor-pointer group">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <span class="text-xs font-medium text-neutral-600">Food</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 min-w-[64px]">
+                    <div class="w-14 h-14 rounded-2xl bg-white shadow-sm border border-neutral-100 flex items-center justify-center text-neutral-400 hover:bg-secondary hover:text-white transition-colors cursor-pointer group">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <span class="text-xs font-medium text-neutral-600">Tech</span>
+                </div>
+                <div class="flex flex-col items-center gap-2 min-w-[64px]">
+                    <div class="w-14 h-14 rounded-2xl bg-white shadow-sm border border-neutral-100 flex items-center justify-center text-neutral-400 hover:bg-secondary hover:text-white transition-colors cursor-pointer group">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                    </div>
+                    <span class="text-xs font-medium text-neutral-600">Wellness</span>
+                </div>
+            </div>
+
+            <!-- Featured Deal (Energy Vibe) -->
+            <div class="flex justify-between items-end mb-4">
+                <h3 class="text-lg font-bold text-neutral-900">Flash Deals</h3>
+                <span class="text-secondary text-xs font-bold flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    </svg>
+                    Ends in 04:23:12
+                </span>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 mb-6 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 bg-secondary text-white text-xs font-bold px-3 py-1 rounded-bl-xl z-10">
+                    -40% OFF
+                </div>
+                <div class="flex gap-4">
+                    <div class="w-24 h-24 bg-neutral-100 rounded-xl flex-shrink-0 flex items-center justify-center">
+                        <span class="text-2xl">🍔</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-1 mb-1">
+                            <span class="bg-blue-50 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">VERIFIED</span>
+                            <span class="text-neutral-400 text-[10px]">• Chicken Republic</span>
+                        </div>
+                        <h4 class="font-bold text-neutral-900 mb-1">Refuel Combo Meal</h4>
+                        <div class="flex items-baseline gap-2 mb-3">
+                            <span class="text-lg font-bold text-secondary">₦2,500</span>
+                            <span class="text-xs text-neutral-400 line-through">₦4,200</span>
+                        </div>
+                        <button class="w-full bg-primary text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition shadow-md shadow-blue-200">
+                            Get Voucher
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust Section (Wise Advisor Vibe) -->
+            <div class="flex justify-between items-end mb-4">
+                <h3 class="text-lg font-bold text-neutral-900">Emerging Brands</h3>
+                <span class="text-primary text-xs font-medium">View All</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Card 1 -->
+                <div class="bg-white rounded-2xl p-3 shadow-sm border border-neutral-100">
+                    <div class="h-24 bg-neutral-100 rounded-xl mb-3 flex items-center justify-center relative">
+                        <span class="text-2xl">👟</span>
+                        <div class="absolute bottom-2 right-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold text-primary flex items-center gap-1 border border-neutral-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            Escrow
+                        </div>
+                    </div>
+                    <h4 class="font-bold text-sm text-neutral-900 truncate">Urban Kicks Ltd</h4>
+                    <p class="text-xs text-neutral-500 mb-2">Lekki Phase 1</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-bold text-secondary">₦15,000</span>
+                        <button class="w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-600 hover:bg-primary hover:text-white transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white rounded-2xl p-3 shadow-sm border border-neutral-100">
+                    <div class="h-24 bg-neutral-100 rounded-xl mb-3 flex items-center justify-center relative">
+                        <span class="text-2xl">🧴</span>
+                        <div class="absolute bottom-2 right-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold text-primary flex items-center gap-1 border border-neutral-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            Escrow
+                        </div>
+                    </div>
+                    <h4 class="font-bold text-sm text-neutral-900 truncate">Glow Organics</h4>
+                    <p class="text-xs text-neutral-500 mb-2">Ikeja GRA</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-bold text-secondary">₦8,500</span>
+                        <button class="w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-600 hover:bg-primary hover:text-white transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Bottom Nav -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-200 px-6 py-3 max-w-md mx-auto z-30">
+            <div class="flex justify-between items-center">
+                <div class="flex flex-col items-center gap-1 text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                    </svg>
+                    <span class="text-[10px] font-medium">Home</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 text-neutral-400 hover:text-primary transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span class="text-[10px] font-medium">Explore</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 text-neutral-400 hover:text-primary transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    <span class="text-[10px] font-medium">Wallet</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 text-neutral-400 hover:text-primary transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span class="text-[10px] font-medium">Profile</span>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+</body>
+</html>
