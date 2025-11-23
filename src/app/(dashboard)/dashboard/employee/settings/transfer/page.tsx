@@ -9,11 +9,13 @@ export default function TransferPage() {
     const [invitationCode, setInvitationCode] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+        setSuccessMessage("");
 
         if (!invitationCode.trim()) {
             setError("Please enter an invitation code");
@@ -32,10 +34,14 @@ export default function TransferPage() {
             const result = await transferEmployer(invitationCode);
 
             if (result.success) {
-                // Show success message and redirect
-                alert(`Transfer successful! You are now with ${result.data?.newEmployerName}`);
-                router.push("/dashboard/employee");
-                router.refresh();
+                setIsLoading(false);
+                setSuccessMessage(`Transfer successful! You are now with ${result.data?.newEmployerName}. Redirecting...`);
+
+                // Redirect after a short delay to let user read the message
+                setTimeout(() => {
+                    router.push("/dashboard/employee");
+                    router.refresh();
+                }, 2000);
             } else {
                 setError(result.error || "Transfer failed");
                 setIsLoading(false);
@@ -73,7 +79,7 @@ export default function TransferPage() {
                         value={invitationCode}
                         onChange={(e) => setInvitationCode(e.target.value)}
                         placeholder="Enter invitation code"
-                        disabled={isLoading}
+                        disabled={isLoading || !!successMessage}
                         style={{
                             width: "100%",
                             padding: "12px",
@@ -93,22 +99,30 @@ export default function TransferPage() {
                     </div>
                 )}
 
+                {successMessage && (
+                    <div style={{ backgroundColor: "#D1FAE5", border: "1px solid #10B981", borderRadius: "8px", padding: "12px", marginBottom: "24px" }}>
+                        <p style={{ margin: 0, fontSize: "14px", color: "#065F46" }}>
+                            ✅ {successMessage}
+                        </p>
+                    </div>
+                )}
+
                 <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || !!successMessage}
                     style={{
-                        backgroundColor: isLoading ? "#9CA3AF" : "#2563EB",
+                        backgroundColor: isLoading || successMessage ? "#9CA3AF" : "#2563EB",
                         color: "white",
                         padding: "12px 24px",
                         borderRadius: "6px",
                         border: "none",
                         fontSize: "16px",
                         fontWeight: "600",
-                        cursor: isLoading ? "not-allowed" : "pointer",
+                        cursor: isLoading || successMessage ? "not-allowed" : "pointer",
                         width: "100%",
                     }}
                 >
-                    {isLoading ? "Processing..." : "Transfer Account"}
+                    {isLoading ? "Processing..." : successMessage ? "Transferred!" : "Transfer Account"}
                 </button>
             </form>
 
