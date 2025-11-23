@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, uuid, pgEnum, integer } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 // Enums
 export const roleEnum = pgEnum('role', ['admin', 'member']);
@@ -98,3 +99,26 @@ export const transactions = pgTable('transactions', {
     status: transactionStatusEnum('status').default('pending').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+// Relations
+export const employeesRelations = relations(employees, ({ one }) => ({
+    user: one(users, {
+        fields: [employees.userId],
+        references: [users.id],
+    }),
+    organization: one(organizations, {
+        fields: [employees.organizationId],
+        references: [organizations.id],
+    }),
+}));
+
+export const employersRelations = relations(employers, ({ one }) => ({
+    user: one(users, {
+        fields: [employers.userId],
+        references: [users.id],
+    }),
+    organization: one(organizations, {
+        fields: [employers.organizationId],
+        references: [organizations.id],
+    }),
+}));
