@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useLocation } from '@/hooks/useLocation';
@@ -12,16 +12,20 @@ function SearchBarContent({ initialQuery = '' }: { initialQuery?: string }) {
     const debouncedQuery = useDebouncedValue(query, 300);
 
     const { city, state } = useLocation();
+    const prevUrlQueryRef = useRef<string | null>(null);
 
     // Sync local state with URL param ONLY when URL query is cleared
     // This allows the "Clear search" button to work without interfering with typing
     useEffect(() => {
         const urlQuery = searchParams.get('q') || '';
-        // Only sync if URL has no query (user clicked clear) and local state has a query
-        if (!urlQuery && query) {
+
+        // Only clear local state if URL query was just cleared (went from something to nothing)
+        if (prevUrlQueryRef.current && !urlQuery && query) {
             setQuery('');
         }
-    }, [searchParams, query]);
+
+        prevUrlQueryRef.current = urlQuery;
+    }, [searchParams]); // Only depend on searchParams, not query!
 
     // Update URL when debounced query changes
     useEffect(() => {
