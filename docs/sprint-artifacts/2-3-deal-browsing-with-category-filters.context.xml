@@ -1,0 +1,232 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>3</storyId>
+    <title>Deal Browsing with Category Filters</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-23</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/2-3-deal-browsing-with-category-filters.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employee</asA>
+    <iWant>to filter deals by category (Food, Transport, Utilities)</iWant>
+    <soThat>I can quickly find relevant offers</soThat>
+    <tasks>
+      - Create Category Filter Component (AC: 1, 2, 4, 5, 6, 7)
+      - Build DealCard Component (AC: 3)
+      - Implement Server-Side Filtering (AC: 1, 4, 5, 6)
+      - Add Loading States (AC: 7)
+      - Update Marketplace Page Layout (AC: 1, 2, 3, 6, 7)
+      - Testing and Verification (AC: 1-7)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Deal list updates to show only selected category deals when filter clicked
+    2. Active category is visually highlighted (Vibrant Coral #FA7921)
+    3. Deal cards display: merchant logo, deal title, discount percentage, original price, "Get Deal" CTA
+    4. Filter updates URL query parameter (e.g., ?category=food)
+    5. Refreshing page preserves selected category
+    6. "All" filter shows deals from all categories
+    7. Filter transition is smooth (no layout shift)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics - Story 2.3</title>
+        <section>Epic 2: Verified Marketplace - Story 2.3</section>
+        <snippet>Deal browsing with category filters (Food, Transport, Utilities). Add category filter buttons, use URL search params, implement Server Component filtering.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Verified Merchant Marketplace - FR9</section>
+        <snippet>FR9: Deal browsing with category filters (Food, Transport, Utilities, Electronics, Wellness). Auto-apply discount codes at checkout.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Implementation Patterns - Server Actions</section>
+        <snippet>Server Components for data fetching. Use searchParams prop for filter state. Drizzle ORM with type-safe relations for JOINs. Next/image for all assets.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>UX Design Specification</title>
+        <section>Color System &amp; Component Library</section>
+        <snippet>Primary: Electric Royal Blue (#2563EB). Secondary: Vibrant Coral (#FA7921) for CTAs and active filters. Accent: Electric Lime (#96E072) for discount badges. Headings: Outfit font. Body: Inter font.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/2-2-merchant-directory-page.md</path>
+        <title>Previous Story 2.2</title>
+        <section>Dev Agent Record - Completion Notes</section>
+        <snippet>TrustBadge and MerchantCard components created. Server Components pattern with Drizzle ORM. MerchantCardSkeleton for loading states. Advisory: Consider adding colors.brand to tailwind.config.ts.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>deals, categories, merchants, dealsRelations</symbol>
+        <lines>133-207</lines>
+        <reason>Database schema for deals table with categoryId and merchantId foreign keys. Relations defined for type-safe JOINs. Indexes on categoryId and merchantId for query performance.</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/procedures/merchants.ts</path>
+        <kind>procedure</kind>
+        <symbol>getMerchantsWithDealCounts</symbol>
+        <lines>5-19</lines>
+        <reason>Pattern for database queries using Drizzle ORM. Shows leftJoin with aggregation (count) and groupBy. Use as template for deals query with category filtering.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/modules/marketplace/TrustBadge.tsx</path>
+        <kind>component</kind>
+        <symbol>TrustBadge</symbol>
+        <lines>1-52</lines>
+        <reason>Reusable badge component for trust levels. May be needed on deal cards to show merchant trust level. Uses Vibrant Coral (#FA7921) for EMERGING badge.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/modules/marketplace/MerchantCard.tsx</path>
+        <kind>component</kind>
+        <symbol>MerchantCard</symbol>
+        <lines>all</lines>
+        <reason>Reference for card component pattern. Shows next/image usage, Link wrapper for navigation, hover effects, responsive design.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/modules/marketplace/MerchantCardSkeleton.tsx</path>
+        <kind>component</kind>
+        <symbol>MerchantCardSkeleton</symbol>
+        <lines>all</lines>
+        <reason>Pattern for skeleton loading states. Create similar DealCardSkeleton component.</reason>
+      </artifact>
+      <artifact>
+        <path>src/app/(dashboard)/employee/marketplace/page.tsx</path>
+        <kind>page</kind>
+        <symbol>MarketplacePage</symbol>
+        <lines>all</lines>
+        <reason>Marketplace page to be modified. Add CategoryFilter component and DealCard grid. Accept searchParams prop for category filtering.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package>next</package>
+        <version>^16.0.3</version>
+        <usage>App Router, Server Components, next/image, searchParams</usage>
+      </node>
+      <node>
+        <package>drizzle-orm</package>
+        <version>^0.44.7</version>
+        <usage>Database queries with type-safe relations and JOINs</usage>
+      </node>
+      <node>
+        <package>react</package>
+        <version>^19.2.0</version>
+        <usage>Component development</usage>
+      </node>
+      <node>
+        <package>tailwindcss</package>
+        <version>^3.4.1</version>
+        <usage>Styling with UX design color system</usage>
+      </node>
+      <node>
+        <package>typescript</package>
+        <version>^5</version>
+        <usage>Type safety for components and database queries</usage>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Use Server Components for data fetching (no client-side fetch for initial load)
+    - Use URL search params (searchParams prop) for filter state, not client state
+    - Filter logic must be server-side (no client-side JS for filtering)
+    - Use Drizzle ORM with type-safe relations for all database queries
+    - Filter for active deals only: validUntil &gt; NOW() AND inventoryCount &gt; 0
+    - Use next/image for all images with lazy loading
+    - Follow Atomic Design: UI components in src/components/ui, Module components in src/components/modules/marketplace
+    - Use kebab-case for file names, PascalCase for component names
+    - Minimum touch target size: 44x44px for filter buttons
+    - Test on screens as small as 320px width (mobile-first)
+    - Target: First Contentful Paint &lt; 2s on 3G
+    - No layout shift during filter transitions (use Suspense boundaries)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Deal Query Result</name>
+      <kind>database-query</kind>
+      <signature>
+        {
+          id: string,
+          title: string,
+          description: string | null,
+          discountPercentage: number | null,
+          originalPrice: number,
+          merchant: { id: string, name: string, logoUrl: string | null, trustLevel: 'VERIFIED' | 'EMERGING' },
+          category: { id: string, name: string, slug: string }
+        }
+      </signature>
+      <path>src/server/procedures/deals.ts</path>
+    </interface>
+    <interface>
+      <name>CategoryFilter Props</name>
+      <kind>component-props</kind>
+      <signature>
+        {
+          categories: Array&lt;{ id: string, name: string, slug: string }&gt;,
+          activeCategory?: string
+        }
+      </signature>
+      <path>src/components/modules/marketplace/CategoryFilter.tsx</path>
+    </interface>
+    <interface>
+      <name>DealCard Props</name>
+      <kind>component-props</kind>
+      <signature>
+        {
+          deal: {
+            id: string,
+            title: string,
+            discountPercentage: number | null,
+            originalPrice: number,
+            merchant: { name: string, logoUrl: string | null, trustLevel: 'VERIFIED' | 'EMERGING' }
+          }
+        }
+      </signature>
+      <path>src/components/modules/marketplace/DealCard.tsx</path>
+    </interface>
+    <interface>
+      <name>Marketplace Page searchParams</name>
+      <kind>page-props</kind>
+      <signature>
+        {
+          searchParams: Promise&lt;{ category?: string }&gt;
+        }
+      </signature>
+      <path>src/app/(dashboard)/employee/marketplace/page.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit tests using Vitest for server procedures (follow pattern in merchants.test.ts). Manual testing for UI components and page interactions. Performance testing with Chrome DevTools Network throttling (Fast 3G). Lighthouse audit for Performance score &gt; 90.
+    </standards>
+    <locations>
+      src/server/procedures/*.test.ts
+    </locations>
+    <ideas>
+      - AC1: Test getDealsByCategory() returns only Food deals when category='food'
+      - AC2: Test CategoryFilter highlights active category with Vibrant Coral styling
+      - AC3: Test DealCard renders all required fields (logo, title, discount, price, CTA)
+      - AC4: Test URL query parameter updates when category filter clicked
+      - AC5: Test page refresh preserves category from URL query parameter
+      - AC6: Test "All" filter returns all deals (no category filter)
+      - AC7: Test Suspense boundary shows skeleton during loading, smooth transition to content
+      - Performance: Test First Contentful Paint &lt; 2s on 3G throttling
+      - Responsive: Test layout on 320px (mobile), 768px (tablet), 1920px (desktop)
+    </ideas>
+  </tests>
+</story-context>
