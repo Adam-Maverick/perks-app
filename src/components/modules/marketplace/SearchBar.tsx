@@ -13,14 +13,6 @@ function SearchBarContent({ initialQuery = '' }: { initialQuery?: string }) {
 
     const { city, state } = useLocation();
 
-    // Sync local state with URL param on mount/update
-    useEffect(() => {
-        const urlQuery = searchParams.get('q') || '';
-        if (urlQuery !== query) {
-            setQuery(urlQuery);
-        }
-    }, [searchParams]);
-
     // Update URL when debounced query changes
     useEffect(() => {
         const params = new URLSearchParams(searchParams.toString());
