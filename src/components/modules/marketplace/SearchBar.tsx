@@ -13,6 +13,16 @@ function SearchBarContent({ initialQuery = '' }: { initialQuery?: string }) {
 
     const { city, state } = useLocation();
 
+    // Sync local state with URL param ONLY when URL query is cleared
+    // This allows the "Clear search" button to work without interfering with typing
+    useEffect(() => {
+        const urlQuery = searchParams.get('q') || '';
+        // Only sync if URL has no query (user clicked clear) and local state has a query
+        if (!urlQuery && query) {
+            setQuery('');
+        }
+    }, [searchParams, query]);
+
     // Update URL when debounced query changes
     useEffect(() => {
         const params = new URLSearchParams(searchParams.toString());
