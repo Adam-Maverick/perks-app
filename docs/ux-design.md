@@ -126,6 +126,15 @@ The design balances the security of a financial platform with the excitement of 
     -   **Bottom Nav:** Home, Explore, Wallet, Profile.
     -   **Deal Feed:** Horizontal Scroll Categories + Vertical Deal List.
 
+### 6.2 Global Components
+
+**Offline Banner**
+-   **Function:** Global notification appearing at the very top of the viewport when network connectivity is lost.
+-   **Positioning:** Fixed (`top-0`, `z-50`).
+-   **Layout Constraint:** All other fixed-position elements (e.g., sticky headers, sidebars) MUST account for the potential presence of this banner.
+    -   *Recommendation:* Use a CSS variable (e.g., `--offline-banner-height`) or ensure `top` offsets for other fixed elements can dynamically adjust or sit below the banner's z-index if overlapping is acceptable (though pushing content is preferred).
+-   **Behavior:** Auto-hides when online.
+
 ---
 
 ## 7. UX Pattern Decisions
