@@ -1,0 +1,284 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>4</storyId>
+    <title>Search Functionality with Location Recommendations</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-24</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/2-4-search-functionality-with-location-recommendations.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employee</asA>
+    <iWant>to search for deals by keyword or merchant name</iWant>
+    <soThat>I can quickly find specific offers</soThat>
+    <tasks>
+      - Create Search Input Component (SearchBar.tsx) with debouncing (300ms), URL search params, clear button
+      - Implement Location Detection (useLocation.ts hook) using Geolocation API with IP fallback
+      - Build Search Server Procedure (searchDeals function) with PostgreSQL ILIKE full-text search
+      - Create Empty State Component (EmptySearchState.tsx) with category suggestions
+      - Update Marketplace Page with search integration, combining with category filters
+      - Create Debounce Hook (useDebouncedValue.ts) for 300ms delay
+      - Testing: search queries, debouncing, URL persistence, location detection, empty states
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Deal list updates in real-time when typing in search bar</criterion>
+    <criterion id="AC2">Search matches deal titles, merchant names, and descriptions (case-insensitive)</criterion>
+    <criterion id="AC3">If location is set (Lagos, Ikeja), local merchants are prioritized in results</criterion>
+    <criterion id="AC4">Search query is reflected in URL (?q=pizza)</criterion>
+    <criterion id="AC5">Clearing search shows all deals again</criterion>
+    <criterion id="AC6">No results shows helpful message: "No deals found for 'pizza'. Try 'Food' category?"</criterion>
+    <criterion id="AC7">Search debounces input (waits 300ms after typing stops)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2: Verified Marketplace</title>
+        <section>Story 2.4: Search Functionality with Location Recommendations</section>
+        <snippet>Search functionality with location-based recommendations. Search matches deal titles, merchant names, and descriptions. If location is set, local merchants are prioritized. Search debounces input (300ms). Empty state with category suggestions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR10: Search functionality with location-based recommendations</section>
+        <snippet>Verified Merchant Marketplace includes search functionality with location-based recommendations. PWA must load in under 2s on 3G networks (NFR1). Offline mode for cached deals (NFR2).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Implementation Patterns - Server Actions for Mutations</section>
+        <snippet>Server Actions for mutations with Zod validation. TanStack Query for client-side data fetching. Component composition follows Atomic Design (ui/ for generic, modules/ for business logic). Use kebab-case for files, PascalCase for components.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Performance Considerations</section>
+        <snippet>Use next/image for all assets. Use next/font for Google Fonts (Outfit, Inter). Leverage Next.js Request Memoization and Data Cache. Service Worker caches static assets for offline shell.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>UX Design Specification</title>
+        <section>Color System</section>
+        <snippet>Primary: Electric Royal Blue (#2563EB) for headers, navigation. Secondary: Vibrant Coral (#FA7921) for CTAs. Accent: Electric Lime (#96E072) for savings. Neutral: Clean White (#FFFFFF) and Soft Light Grey (#F8F9FA) for backgrounds.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>UX Design Specification</title>
+        <section>Typography</section>
+        <snippet>Headings: "Outfit" (Google Font) - geometric, modern. Body: "Inter" (Google Font) - clean, highly legible. Minimum 14px for body text. Search input should be 16px to prevent iOS zoom.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>UX Design Specification</title>
+        <section>Responsive Design</section>
+        <snippet>Mobile-First PWA. Touch targets minimum 44x44px. Bottom bar for primary navigation (thumb zone friendly). Font sizes minimum 14px for body text.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/2-3-deal-browsing-with-category-filters.md</path>
+        <title>Story 2.3: Deal Browsing with Category Filters</title>
+        <section>Dev Notes - Learnings from Previous Story</section>
+        <snippet>Components available: CategoryFilter, DealCard, DealCardSkeleton, TrustBadge. Server procedures pattern in deals.ts. Use Tailwind theme colors (bg-vibrant-coral, text-electric-royal-blue) instead of hardcoded hex. Marketplace page uses searchParams prop from Server Component. Suspense boundaries established for progressive loading.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>src/server/procedures/deals.ts</path>
+        <kind>server-procedure</kind>
+        <symbol>getDealsByCategory</symbol>
+        <lines>5-46</lines>
+        <reason>Existing deals query function to extend with searchDeals. Follow same pattern: Drizzle ORM, innerJoin merchants/categories, filter active deals (validUntil > now, inventoryCount > 0). Return same structure for consistency.</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/procedures/deals.ts</path>
+        <kind>server-procedure</kind>
+        <symbol>getAllCategories</symbol>
+        <lines>48-60</lines>
+        <reason>Categories query for empty state suggestions. Can be reused to suggest relevant categories based on search query keywords.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/modules/marketplace/CategoryFilter.tsx</path>
+        <kind>component</kind>
+        <symbol>CategoryFilter</symbol>
+        <lines>all</lines>
+        <reason>Uses useSearchParams hook and URL search params pattern. SearchBar should follow same pattern for ?q= parameter. Shows how to update URL and read from it.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/modules/marketplace/DealCard.tsx</path>
+        <kind>component</kind>
+        <symbol>DealCard</symbol>
+        <lines>all</lines>
+        <reason>Deal card component to display search results. Reuse as-is for search results grid. Already includes merchant logo, title, discount badge, price, CTA.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/modules/marketplace/DealCardSkeleton.tsx</path>
+        <kind>component</kind>
+        <symbol>DealCardSkeleton</symbol>
+        <lines>all</lines>
+        <reason>Loading skeleton for search results. Reuse during search debounce/loading state.</reason>
+      </artifact>
+      <artifact>
+        <path>src/app/(dashboard)/dashboard/employee/marketplace/page.tsx</path>
+        <kind>page</kind>
+        <symbol>MarketplacePage</symbol>
+        <lines>all</lines>
+        <reason>Marketplace page to extend with SearchBar component. Already handles searchParams for category filter. Add ?q= param handling. Combine search + category filters.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>merchants</symbol>
+        <lines>143-154</lines>
+        <reason>Merchants table has location field (text, e.g., "Lagos, Nigeria") but NO latitude/longitude fields. Location-based sorting will need to parse location text or add lat/long fields in future. For MVP, prioritize by exact location text match.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>deals</symbol>
+        <lines>165-179</lines>
+        <reason>Deals table with title, description fields for full-text search. Has indexes on categoryId and merchantId for efficient filtering.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <package>next</package>
+        <version>^16.0.3</version>
+        <usage>App Router, Server Components, searchParams prop</usage>
+      </node>
+      <node>
+        <package>react</package>
+        <version>^19.2.0</version>
+        <usage>Client Components for SearchBar, hooks (useState, useEffect)</usage>
+      </node>
+      <node>
+        <package>drizzle-orm</package>
+        <version>^0.44.7</version>
+        <usage>Database queries with ILIKE for full-text search, type-safe relations</usage>
+      </node>
+      <node>
+        <package>tailwindcss</package>
+        <version>^3.4.1</version>
+        <usage>Styling with theme colors (vibrant-coral, electric-royal-blue, electric-lime)</usage>
+      </node>
+      <node>
+        <package>@neondatabase/serverless</package>
+        <version>^1.0.2</version>
+        <usage>PostgreSQL database connection for search queries</usage>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Use Server Components for data fetching (marketplace page). SearchBar is Client Component (needs useSearchParams, useState).</constraint>
+    <constraint>Follow URL search params pattern from CategoryFilter: read with useSearchParams, update with router.push, persist on refresh.</constraint>
+    <constraint>Extend deals.ts with searchDeals function. Follow same pattern as getDealsByCategory: Drizzle ORM, innerJoin, filter active deals.</constraint>
+    <constraint>Use PostgreSQL ILIKE for case-insensitive search (e.g., WHERE deals.title ILIKE '%query%'). Consider tsvector for production optimization.</constraint>
+    <constraint>Debounce search input with 300ms delay using custom useDebouncedValue hook (useEffect + setTimeout pattern).</constraint>
+    <constraint>Location detection: Use browser Geolocation API (navigator.geolocation.getCurrentPosition) with IP-based fallback. Store in localStorage for persistence.</constraint>
+    <constraint>Merchants table has text location field (no lat/long). For MVP, prioritize by exact location text match. Haversine distance calculation requires adding lat/long fields (future enhancement).</constraint>
+    <constraint>Use Tailwind theme colors: bg-vibrant-coral, text-electric-royal-blue, bg-electric-lime (NO hardcoded hex values).</constraint>
+    <constraint>Search input must be 16px font size to prevent iOS zoom on focus.</constraint>
+    <constraint>Touch targets minimum 44x44px for mobile (search input, clear button).</constraint>
+    <constraint>Combine search with category filter (both can be active: ?category=food&amp;q=pizza). Use AND logic in database query.</constraint>
+    <constraint>Sanitize search input to prevent SQL injection (Drizzle ORM handles this with parameterized queries).</constraint>
+    <constraint>Empty state must suggest relevant categories based on query keywords (e.g., "pizza" → suggest "Food" category).</constraint>
+    <constraint>Reuse existing DealCard, DealCardSkeleton, Suspense boundary from Story 2.3 for consistency.</constraint>
+    <constraint>Performance: Target First Contentful Paint &lt; 2s on 3G (NFR1). Debouncing reduces API calls.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>searchDeals</name>
+      <kind>server-procedure</kind>
+      <signature>
+        async function searchDeals(
+          query: string,
+          categorySlug?: string,
+          location?: { city: string, state: string }
+        ): Promise&amp;lt;Array&amp;lt;{
+          id: string,
+          title: string,
+          description: string,
+          discountPercentage: number,
+          originalPrice: number,
+          validUntil: Date,
+          inventoryCount: number,
+          merchant: { id: string, name: string, logoUrl: string, trustLevel: string, location: string },
+          category: { id: string, name: string, slug: string }
+        }&amp;gt;&amp;gt;
+      </signature>
+      <path>src/server/procedures/deals.ts</path>
+      <notes>Extend deals.ts with searchDeals function. Use ILIKE for full-text search on deals.title, deals.description, merchants.name. If location provided, prioritize merchants with matching location text. Combine with categorySlug filter if provided. Return same structure as getDealsByCategory for consistency.</notes>
+    </interface>
+    <interface>
+      <name>useDebouncedValue</name>
+      <kind>react-hook</kind>
+      <signature>
+        function useDebouncedValue&amp;lt;T&amp;gt;(value: T, delay: number = 300): T
+      </signature>
+      <path>src/hooks/useDebouncedValue.ts</path>
+      <notes>Custom hook for debouncing search input. Uses useEffect with setTimeout. Cleans up timeout on unmount or value change. Generic type for type safety.</notes>
+    </interface>
+    <interface>
+      <name>useLocation</name>
+      <kind>react-hook</kind>
+      <signature>
+        function useLocation(): {
+          location: { city: string, state: string, latitude: number, longitude: number } | null,
+          loading: boolean,
+          error: string | null,
+          requestLocation: () => void
+        }
+      </signature>
+      <path>src/hooks/useLocation.ts</path>
+      <notes>Hook for location detection. Uses navigator.geolocation.getCurrentPosition with IP-based fallback (ipapi.co). Stores in localStorage for persistence. Returns null if permission denied or error. Graceful degradation (search works without location).</notes>
+    </interface>
+    <interface>
+      <name>SearchBar</name>
+      <kind>react-component</kind>
+      <signature>
+        function SearchBar({ initialQuery }: { initialQuery?: string }): JSX.Element
+      </signature>
+      <path>src/components/modules/marketplace/SearchBar.tsx</path>
+      <notes>Client Component. Uses useSearchParams to read/update ?q= param. Debounces input with useDebouncedValue hook. Includes clear button (X icon). Styled with Electric Royal Blue focus ring, 16px font size, 44px height.</notes>
+    </interface>
+    <interface>
+      <name>EmptySearchState</name>
+      <kind>react-component</kind>
+      <signature>
+        function EmptySearchState({ query }: { query: string }): JSX.Element
+      </signature>
+      <path>src/components/modules/marketplace/EmptySearchState.tsx</path>
+      <notes>Shows "No deals found for '{query}'" message. Suggests relevant categories based on query keywords (pizza → Food, uber → Transport, electricity → Utilities). Includes "Clear search" button.</notes>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit tests use Vitest (installed in package.json). Follow pattern from deals.test.ts (Story 2.3). Test server procedures with mock database. Component tests not yet configured (no testing library installed). Manual testing via browser for UI components. Performance testing with Chrome DevTools Network throttling (Fast 3G) and Lighthouse audit (target: Performance > 90).
+    </standards>
+    <locations>
+      - src/server/procedures/*.test.ts (unit tests for server procedures)
+      - Manual testing via browser for UI components
+      - Chrome DevTools for performance testing
+    </locations>
+    <ideas>
+      <idea ac="AC1">Test searchDeals procedure with various queries (merchant names, deal titles, partial matches). Verify results update correctly.</idea>
+      <idea ac="AC2">Test case-insensitive search (ILIKE). Query "PIZZA" should match "pizza" in database.</idea>
+      <idea ac="AC3">Test location prioritization. Mock location (Lagos) and verify Lagos merchants appear first in results.</idea>
+      <idea ac="AC4">Test URL parameter persistence. Type search → verify ?q=pizza in URL → refresh → verify query persists.</idea>
+      <idea ac="AC5">Test clear button. Click clear → verify URL updates to remove ?q= → verify all deals shown.</idea>
+      <idea ac="AC6">Test empty state. Search for nonsense query → verify EmptySearchState renders with helpful message and category suggestions.</idea>
+      <idea ac="AC7">Test debouncing. Type fast in search input → verify only 1 API call after 300ms (check Network tab in DevTools).</idea>
+      <idea>Test search + category filter combination. Apply category filter + search query → verify both filters apply (AND logic).</idea>
+      <idea>Test location detection permission denied. Deny location → verify search still works without prioritization.</idea>
+      <idea>Test responsive layout. Verify SearchBar is full-width on mobile (320px), max-width 400px on desktop.</idea>
+    </ideas>
+  </tests>
+</story-context>
