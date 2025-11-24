@@ -5,7 +5,6 @@ import { DealCard } from "@/components/modules/marketplace/DealCard";
 import { DealCardSkeleton } from "@/components/modules/marketplace/DealCardSkeleton";
 import { SearchBar } from "@/components/modules/marketplace/SearchBar";
 import { EmptySearchState } from "@/components/modules/marketplace/EmptySearchState";
-import { EmptySearchState } from "@/components/modules/marketplace/EmptySearchState";
 import { MarketplaceClientWrapper } from "@/components/modules/marketplace/MarketplaceClientWrapper";
 import { getDealsByCategory, getAllCategories, searchDeals } from "@/server/procedures/deals";
 
