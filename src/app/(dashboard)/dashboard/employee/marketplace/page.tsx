@@ -5,7 +5,7 @@ import { DealCard } from "@/components/modules/marketplace/DealCard";
 import { DealCardSkeleton } from "@/components/modules/marketplace/DealCardSkeleton";
 import { SearchBar } from "@/components/modules/marketplace/SearchBar";
 import { EmptySearchState } from "@/components/modules/marketplace/EmptySearchState";
-import { OfflineBanner } from "@/components/modules/marketplace/OfflineBanner";
+import { EmptySearchState } from "@/components/modules/marketplace/EmptySearchState";
 import { MarketplaceClientWrapper } from "@/components/modules/marketplace/MarketplaceClientWrapper";
 import { getDealsByCategory, getAllCategories, searchDeals } from "@/server/procedures/deals";
 
@@ -66,7 +66,6 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
 
     return (
         <>
-            <OfflineBanner />
             <div className="container mx-auto px-4 py-8">
                 <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
