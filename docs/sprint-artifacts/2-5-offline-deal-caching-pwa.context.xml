@@ -1,0 +1,191 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>5</storyId>
+    <title>Offline Deal Caching (PWA)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-24</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/2-5-offline-deal-caching-pwa.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employee with poor network connectivity</asA>
+    <iWant>to view previously loaded deals offline</iWant>
+    <soThat>I can browse even without internet access</soThat>
+    <tasks>
+      - Configure Serwist Runtime Caching (AC: 1, 3)
+      - Implement Offline Detection (AC: 2, 6)
+      - Create Offline Banner Component (AC: 2, 6)
+      - Update Service Worker Configuration (AC: 1, 3, 4)
+      - Disable CTAs When Offline (AC: 5)
+      - Update Marketplace Page with Offline Support (AC: 1-6)
+      - Testing and Verification (AC: 1-6)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given I have previously visited the marketplace page while online, When I go offline (airplane mode or network failure), And I navigate to /dashboard/employee/marketplace, Then I see the cached deals from my last visit
+    2. And A banner displays: "You are offline. Showing cached deals."
+    3. And Deal images load from the cache (no broken images)
+    4. And I can click on deals to view details (cached data only)
+    5. And the "Get Deal" button is disabled with a tooltip: "Available when online"
+    6. And When I go back online, the banner disappears and fresh data loads
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Core Technologies</section>
+        <snippet>PWA Engine: Serwist. Service worker file: src/app/sw.ts (created by Serwist). Configuration in next.config.ts using @serwist/next plugin.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Performance Considerations</section>
+        <snippet>Images: Use next/image for all assets. PWA: Service Worker caches static assets for offline shell. Caching: Leverage Next.js Request Memoization and Data Cache where appropriate.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics</title>
+        <section>Story 1.1: Project Initialization &amp; PWA Setup</section>
+        <snippet>PWA manifest and service worker are configured via Serwist. Lighthouse PWA audit scores 90+ (installability, offline shell). Install Serwist: npm install @serwist/next @serwist/precaching @serwist/sw</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics</title>
+        <section>Story 2.5: Offline Deal Caching (PWA)</section>
+        <snippet>Configure Serwist to cache marketplace API responses. Use workbox-precaching for static assets (images, CSS, JS). Implement runtime caching strategy for /api/deals (Network-First, fallback to Cache). Add offline detection using navigator.onLine and online/offline events.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/2-4-search-functionality-with-location-recommendations.md</path>
+        <title>Story 2.4 Dev Notes</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Components Available: SearchBar, EmptySearchState, CategoryFilter, DealCard, DealCardSkeleton, TrustBadge in src/components/modules/marketplace. Hooks Created: useDebouncedValue, useLocation in src/hooks/ - follow similar pattern for useOnlineStatus. Client/Server Split: SearchBar is Client Component, Page is Server Component.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>src/app/sw.ts</path>
+        <kind>service-worker</kind>
+        <symbol>Serwist</symbol>
+        <lines>1-25</lines>
+        <reason>Existing service worker configuration using Serwist. Currently uses defaultCache for runtime caching. Needs to be extended with custom runtime caching strategies for marketplace API routes and images.</reason>
+      </file>
+      <file>
+        <path>next.config.ts</path>
+        <kind>config</kind>
+        <symbol>withSerwist</symbol>
+        <lines>4-10</lines>
+        <reason>Serwist configuration with swSrc, swDest, cacheOnNavigation, and reloadOnOnline options. May need additional runtime caching configuration.</reason>
+      </file>
+      <file>
+        <path>src/components/modules/marketplace/DealCard.tsx</path>
+        <kind>component</kind>
+        <symbol>DealCard</symbol>
+        <lines>19-85</lines>
+        <reason>Existing DealCard component that needs to be extended with isOnline prop to disable "Get Deal" button when offline (AC #5). Currently has button at line 78-80.</reason>
+      </file>
+      <file>
+        <path>src/app/(dashboard)/dashboard/employee/marketplace/page.tsx</path>
+        <kind>page</kind>
+        <symbol>MarketplacePage</symbol>
+        <lines>62-109</lines>
+        <reason>Marketplace page that needs OfflineBanner component integration. Uses Suspense boundaries (lines 91-106) which should work with cached data. Needs to pass isOnline state to DealCard components.</reason>
+      </file>
+      <file>
+        <path>src/hooks/useLocation.ts</path>
+        <kind>hook</kind>
+        <symbol>useLocation</symbol>
+        <lines>14-110</lines>
+        <reason>Example pattern for creating custom hooks with browser APIs (navigator.geolocation, localStorage, event listeners). Follow similar pattern for useOnlineStatus hook with navigator.onLine and online/offline events.</reason>
+      </file>
+      <file>
+        <path>src/components/modules/marketplace/SearchBar.tsx</path>
+        <kind>component</kind>
+        <symbol>SearchBar</symbol>
+        <lines>N/A</lines>
+        <reason>Example of Client Component pattern for interactive features. OfflineBanner will follow similar pattern as a Client Component.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@serwist/next" version="^9.2.1" />
+        <package name="@serwist/precaching" version="^9.2.1" />
+        <package name="@serwist/sw" version="^9.2.1" />
+        <package name="next" version="^16.0.3" />
+        <package name="react" version="^19.2.0" />
+        <package name="react-dom" version="^19.2.0" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Use Serwist for service worker implementation (already installed and configured)
+    - Follow existing hook pattern from useLocation for useOnlineStatus (useState, useEffect, event listeners, cleanup)
+    - Client Components for interactive features (OfflineBanner), Server Components for data fetching (marketplace page)
+    - Use Tailwind theme colors: bg-vibrant-coral for offline banner, text-electric-royal-blue for icons
+    - Follow naming conventions: kebab-case for files, PascalCase for components, camelCase for functions
+    - Only cache public data (marketplace deals, merchant info), never cache sensitive data (wallet balance, transactions)
+    - Ensure HTTPS for service worker (required by browser)
+    - Use Network-First strategy for API routes (fresh data when online, fallback to cache when offline)
+    - Use Cache-First strategy for images (faster loading, images rarely change)
+    - Set cache expiration: 7 days for API responses, 30 days for images
+    - Disable CTAs when offline with disabled styling (opacity 50%, cursor not-allowed)
+    - Use next/image for all images (already implemented in DealCard)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>useOnlineStatus</name>
+      <kind>custom-hook</kind>
+      <signature>function useOnlineStatus(): { isOnline: boolean }</signature>
+      <path>src/hooks/useOnlineStatus.ts (to be created)</path>
+    </interface>
+    <interface>
+      <name>OfflineBanner</name>
+      <kind>react-component</kind>
+      <signature>React.FC (no props, uses useOnlineStatus internally)</signature>
+      <path>src/components/modules/marketplace/OfflineBanner.tsx (to be created)</path>
+    </interface>
+    <interface>
+      <name>DealCard (extended)</name>
+      <kind>react-component</kind>
+      <signature>React.FC&lt;DealCardProps &amp; { isOnline?: boolean }&gt;</signature>
+      <path>src/components/modules/marketplace/DealCard.tsx (to be modified)</path>
+    </interface>
+    <interface>
+      <name>Serwist Runtime Caching</name>
+      <kind>service-worker-config</kind>
+      <signature>runtimeCaching: RuntimeCaching[] in src/app/sw.ts</signature>
+      <path>src/app/sw.ts (to be modified)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Manual testing with Chrome DevTools (Network tab → Offline mode, Application tab → Service Workers and Cache Storage). Test on multiple browsers (Chrome, Safari, Firefox) and mobile devices (iOS Safari, Android Chrome). Run Lighthouse PWA audit (target: 90+ score). Verify service worker registration, cache storage, and offline functionality. Test edge cases: slow network (3G), cache full, service worker update during offline session, multiple tabs open.
+    </standards>
+    <locations>
+      - Manual testing in browser DevTools
+      - Lighthouse PWA audit via Chrome DevTools
+      - Mobile device testing (iOS/Android)
+    </locations>
+    <ideas>
+      - AC #1: Load marketplace while online → go offline → navigate to marketplace → verify cached deals display
+      - AC #2: Go offline → verify banner appears with message "You are offline. Showing cached deals."
+      - AC #3: Go offline → verify deal images load from cache (no broken images)
+      - AC #4: Go offline → click deal card → verify navigation works with cached data
+      - AC #5: Go offline → verify "Get Deal" button disabled with tooltip "Available when online"
+      - AC #6: Go back online → verify banner disappears and fresh data loads
+      - Edge case: Start app while offline → verify cached content loads
+      - Edge case: Go offline mid-browse → verify banner appears immediately
+      - Edge case: Very slow network (3G) → verify Network-First doesn't timeout
+      - Service worker: Verify service worker registered and activated in DevTools
+      - Cache storage: Verify cached resources in DevTools → Application → Cache Storage
+      - Cache expiration: Mock old cache → verify fresh data fetched when online
+    </ideas>
+  </tests>
+</story-context>

@@ -14,9 +14,10 @@ interface DealCardProps {
             trustLevel: TrustLevel;
         };
     };
+    isOnline?: boolean;
 }
 
-export const DealCard: React.FC<DealCardProps> = ({ deal }) => {
+export const DealCard: React.FC<DealCardProps> = ({ deal, isOnline = true }) => {
     // Convert kobo to naira
     const priceInNaira = deal.originalPrice / 100;
     const formattedPrice = new Intl.NumberFormat('en-NG', {
@@ -75,7 +76,14 @@ export const DealCard: React.FC<DealCardProps> = ({ deal }) => {
                     <span className="font-inter text-xl font-bold text-gray-900">
                         {formattedPrice}
                     </span>
-                    <button className="bg-vibrant-coral text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-vibrant-coral/90 transition-colors">
+                    <button
+                        disabled={!isOnline}
+                        title={!isOnline ? 'Available when online' : undefined}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isOnline
+                                ? 'bg-vibrant-coral text-white hover:bg-vibrant-coral/90 cursor-pointer'
+                                : 'bg-vibrant-coral/50 text-white cursor-not-allowed opacity-50'
+                            }`}
+                    >
                         Get Deal
                     </button>
                 </div>

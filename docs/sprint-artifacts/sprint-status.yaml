@@ -49,7 +49,7 @@ development_status:
   2-2-merchant-directory-page: done
   2-3-deal-browsing-with-category-filters: done
   2-4-search-functionality-with-location-recommendations: done
-  2-5-offline-deal-caching-pwa: backlog
+  2-5-offline-deal-caching-pwa: ready-for-dev
   epic-2-retrospective: optional
   
   epic-3: backlog

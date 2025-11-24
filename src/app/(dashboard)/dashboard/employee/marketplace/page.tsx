@@ -5,6 +5,8 @@ import { DealCard } from "@/components/modules/marketplace/DealCard";
 import { DealCardSkeleton } from "@/components/modules/marketplace/DealCardSkeleton";
 import { SearchBar } from "@/components/modules/marketplace/SearchBar";
 import { EmptySearchState } from "@/components/modules/marketplace/EmptySearchState";
+import { OfflineBanner } from "@/components/modules/marketplace/OfflineBanner";
+import { MarketplaceClientWrapper } from "@/components/modules/marketplace/MarketplaceClientWrapper";
 import { getDealsByCategory, getAllCategories, searchDeals } from "@/server/procedures/deals";
 
 export const metadata: Metadata = {
@@ -50,13 +52,7 @@ async function DealsGrid({
         );
     }
 
-    return (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {deals.map((deal) => (
-                <DealCard key={deal.id} deal={deal} />
-            ))}
-        </div>
-    );
+    return <MarketplaceClientWrapper deals={deals} />;
 }
 
 export default async function MarketplacePage({ searchParams }: MarketplacePageProps) {
@@ -69,41 +65,44 @@ export default async function MarketplacePage({ searchParams }: MarketplacePageP
     const categories = await getAllCategories();
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <h1 className="font-outfit text-3xl font-bold text-electric-royal-blue">
-                        Marketplace
-                    </h1>
-                    <p className="mt-2 text-gray-600">
-                        Discover trusted brands and exclusive deals curated for you.
-                    </p>
-                </div>
-                <SearchBar initialQuery={query} />
-            </div>
-
-            {/* Category Filter */}
-            <div className="mb-6">
-                <CategoryFilter categories={categories} />
-            </div>
-
-            {/* Deals Grid with Suspense */}
-            <Suspense
-                key={`${categorySlug || 'all'}-${query || 'none'}-${city || 'no-city'}`}
-                fallback={
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <DealCardSkeleton key={i} />
-                        ))}
+        <>
+            <OfflineBanner />
+            <div className="container mx-auto px-4 py-8">
+                <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h1 className="font-outfit text-3xl font-bold text-electric-royal-blue">
+                            Marketplace
+                        </h1>
+                        <p className="mt-2 text-gray-600">
+                            Discover trusted brands and exclusive deals curated for you.
+                        </p>
                     </div>
-                }
-            >
-                <DealsGrid
-                    categorySlug={categorySlug}
-                    query={query}
-                    location={city || state ? { city, state } : undefined}
-                />
-            </Suspense>
-        </div>
+                    <SearchBar initialQuery={query} />
+                </div>
+
+                {/* Category Filter */}
+                <div className="mb-6">
+                    <CategoryFilter categories={categories} />
+                </div>
+
+                {/* Deals Grid with Suspense */}
+                <Suspense
+                    key={`${categorySlug || 'all'}-${query || 'none'}-${city || 'no-city'}`}
+                    fallback={
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <DealCardSkeleton key={i} />
+                            ))}
+                        </div>
+                    }
+                >
+                    <DealsGrid
+                        categorySlug={categorySlug}
+                        query={query}
+                        location={city || state ? { city, state } : undefined}
+                    />
+                </Suspense>
+            </div>
+        </>
     );
 }
