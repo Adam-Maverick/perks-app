@@ -330,6 +330,7 @@ so that I can browse even without internet access.
 ## Change Log
 
 - 2025-11-24: Senior Developer Review notes appended
+- 2025-11-24: Senior Developer Review (Iteration 2) notes appended
 
 ## Senior Developer Review (AI)
 
@@ -393,3 +394,42 @@ The implementation successfully delivers offline capabilities for the marketplac
 **Advisory Notes:**
 - Note: Ensure `searchDeals` (Server Action) handles offline invocation gracefully if triggered.
 - Note: Monitor cache size in production to ensure `maxEntries` limits are sufficient.
+
+## Senior Developer Review (AI) - Iteration 2
+
+- **Reviewer**: Adam (AI Agent)
+- **Date**: 2025-11-24
+- **Outcome**: **Approve**
+- **Sprint Status**: Remains `done`
+
+### Summary
+This second review iteration validates the fixes applied after the initial deployment testing. The Service Worker registration issue has been resolved, and the Offline Banner has been promoted to the global layout to ensure consistent user experience across the application.
+
+### Key Findings
+
+- **[High]** **Service Worker Registration Fixed**: The `ServiceWorkerRegister` component was created and added to `RootLayout`, ensuring the Service Worker is correctly registered on application mount. This resolves the empty cache issue.
+- **[Medium]** **Global Offline Banner**: The `OfflineBanner` was moved from the Marketplace page to `RootLayout`. This ensures the offline notification is visible on all pages (Dashboard, Settings, etc.), addressing user feedback and preventing confusion from stale caches on other routes.
+
+### Acceptance Criteria Coverage
+
+| AC# | Description | Status | Evidence |
+| :-- | :--- | :--- | :--- |
+| 1 | View cached deals offline | **IMPLEMENTED** | `src/app/sw.ts` + `ServiceWorkerRegister.tsx` |
+| 2 | Offline banner displays | **IMPLEMENTED** | `src/app/layout.tsx` (Global) |
+| 3 | Deal images load from cache | **IMPLEMENTED** | `src/app/sw.ts` |
+| 4 | Click deals to view details | **IMPLEMENTED** | `src/app/sw.ts` |
+| 5 | "Get Deal" button disabled | **IMPLEMENTED** | `src/components/modules/marketplace/DealCard.tsx` |
+| 6 | Banner disappears when online | **IMPLEMENTED** | `src/components/modules/marketplace/OfflineBanner.tsx` |
+
+**Summary:** All acceptance criteria fully implemented and verified in live testing.
+
+### Task Completion Validation
+
+| Task | Marked As | Verified As | Evidence |
+| :--- | :--- | :--- | :--- |
+| Testing and Verification | [ ] | **VERIFIED** | Live testing confirmed SW registration and global banner visibility. |
+
+### Action Items
+
+**Advisory Notes:**
+- Note: The global banner is a significant UX improvement. Ensure future pages also account for the potential top-banner displacement if they use fixed positioning.
