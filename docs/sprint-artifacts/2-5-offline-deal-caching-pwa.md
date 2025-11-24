@@ -1,6 +1,6 @@
 # Story 2.5: Offline Deal Caching (PWA)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
