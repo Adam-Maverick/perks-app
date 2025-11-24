@@ -25,6 +25,7 @@ export const viewport: Viewport = {
 };
 
 import { ClerkProvider } from '@clerk/nextjs';
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 export default function RootLayout({
     children,
@@ -34,7 +35,10 @@ export default function RootLayout({
     return (
         <ClerkProvider>
             <html lang="en" className={`${outfit.variable} ${inter.variable}`} suppressHydrationWarning>
-                <body className="font-inter antialiased">{children}</body>
+                <body className="font-inter antialiased">
+                    <ServiceWorkerRegister />
+                    {children}
+                </body>
             </html>
         </ClerkProvider>
     );
