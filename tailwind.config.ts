@@ -11,7 +11,7 @@ const config: Config = {
             colors: {
                 'electric-royal-blue': '#2563EB',
                 'vibrant-coral': '#FA7921',
-                'electric-lime': '#96E072',
+                'electric-lime': '#5FA83B',
                 'clean-white': '#FFFFFF',
                 'soft-light-grey': '#F8F9FA',
             },
