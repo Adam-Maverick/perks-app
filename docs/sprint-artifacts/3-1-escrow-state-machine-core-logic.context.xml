@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.1</storyId>
+    <title>Escrow State Machine (Core Logic)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-25</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/3-1-escrow-state-machine-core-logic.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>implement the escrow state machine</iWant>
+    <soThat>funds can be held and released based on business rules</soThat>
+    <tasks>
+      - Create Database Schema (escrow_holds, escrow_audit_log tables)
+      - Implement State Machine Core Logic (transitionState function)
+      - Implement Auto-Release Logic (findExpiredHolds, releaseExpiredHolds)
+      - Add Edge Case Protections (database transactions, row-level locking)
+      - Write Unit Tests (100% coverage target)
+      - Integration Testing (full escrow lifecycle)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. escrow_holds table tracks states: HELD, RELEASED, DISPUTED, REFUNDED
+    2. State transitions follow rules: HELD → RELEASED | HELD → DISPUTED | DISPUTED → RELEASED/REFUNDED
+    3. Auto-release triggers after 7 days of inactivity (HELD → RELEASED)
+    4. All state changes logged in escrow_audit_log with timestamps and actor_id
+    5. Unit tests cover all state transitions and edge cases (double-release attempts)
+    6. State machine implemented in src/lib/escrow-state-machine.ts
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 3: Escrow Protection</title>
+        <section>Story 3.1</section>
+        <snippet>Implement escrow state machine with HELD, RELEASED, DISPUTED, REFUNDED states. Auto-release after 14 days (updated to 7 days in prep sprint). All state changes must be logged for compliance.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epic-3-prep-sprint.md</path>
+        <title>Epic 3 Prep Sprint - Technical Spike</title>
+        <section>3. Escrow State Machine</section>
+        <snippet>State machine designed with transitions: HELD → RELEASED (auto/manual), HELD → DISPUTED, DISPUTED → RELEASED/REFUNDED. Edge cases: dispute on Day 6.9, double-release prevention, transfer failures.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epic-3-prep-sprint.md</path>
+        <title>Epic 3 Prep Sprint - Technical Spike</title>
+        <section>4. Nigerian Payment Compliance</section>
+        <snippet>CBN regulations require 7-year data retention, KYC verification, dispute resolution policy. Collections + Transfers architecture chosen over Split Payments to enable 7-day escrow holds.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Implementation Patterns</section>
+        <snippet>Use TypeScript enums for state machines. All mutations via Server Actions with Zod validation. Database transactions for atomic updates. Drizzle ORM for schema definitions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Security Architecture</section>
+        <snippet>RLS-like logic in Server Actions checks orgId. All inputs validated with Zod. Row-level locking for concurrent access. Audit logs for compliance.</snippet>
+      </doc>
+      <doc>
+        <path>docs/prep-sprint-day-1-complete.md</path>
+        <title>Prep Sprint Day 1: Testing Infrastructure</title>
+        <section>Testing Infrastructure Setup</section>
+        <snippet>Vitest configured with 32 passing tests. Test files in src/**/__tests__/*.test.ts pattern. Use describe, it, expect from Vitest. Mock APIs using vi.fn() and vi.spyOn().</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>database schema</kind>
+        <symbol>merchants, transactions, trustLevelEnum</symbol>
+        <lines>1-209</lines>
+        <reason>Existing schema with enum pattern (trustLevelEnum) to follow for escrow state enum. Contains merchants and transactions tables that escrow_holds will reference via foreign keys.</reason>
+      </artifact>
+      <artifact>
+        <path>src/hooks/__tests__/useOnlineStatus.test.ts</path>
+        <kind>unit test</kind>
+        <symbol>useOnlineStatus tests</symbol>
+        <lines>N/A</lines>
+        <reason>Example Vitest test pattern to follow for escrow-state-machine.test.ts. Shows describe/it/expect structure, mocking browser APIs, and cleanup patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>src/lib/validators/email-domain.test.ts</path>
+        <kind>unit test</kind>
+        <symbol>email-domain validator tests</symbol>
+        <lines>N/A</lines>
+        <reason>Example of testing business logic in src/lib/ directory. Shows test structure for utility functions similar to state machine logic.</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/procedures/deals.test.ts</path>
+        <kind>integration test</kind>
+        <symbol>deals procedure tests</symbol>
+        <lines>N/A</lines>
+        <reason>Example of testing server procedures that interact with database. Pattern to follow for integration tests of escrow state transitions.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <dependency name="drizzle-orm" version="^0.44.7" />
+        <dependency name="drizzle-kit" version="^0.31.7" />
+        <dependency name="zod" version="^4.1.12" />
+        <dependency name="vitest" version="^4.0.13" />
+        <dependency name="@vitest/coverage-v8" version="^4.0.13" />
+        <dependency name="@testing-library/react" version="^16.3.0" />
+        <dependency name="@testing-library/jest-dom" version="^6.9.1" />
+        <dependency name="typescript" version="^5" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - State machine logic MUST be in src/lib/ (reusable across Server Actions and Inngest functions)
+    - Use TypeScript enums for states (HELD, RELEASED, DISPUTED, REFUNDED)
+    - All state transitions MUST be atomic (database transactions)
+    - Row-level locking (SELECT FOR UPDATE) required to prevent race conditions
+    - All state changes MUST be logged in escrow_audit_log (immutable, insert-only)
+    - Idempotency: if already in target state, return success (no-op)
+    - Auto-release logic MUST skip disputed holds
+    - Database schema changes via Drizzle ORM (npx drizzle-kit push)
+    - 100% test coverage target for state machine logic
+    - Follow existing test patterns in src/**/__tests__/*.test.ts
+    - Use Vitest for unit tests (describe, it, expect)
+    - Mock database calls using vi.fn() and vi.spyOn()
+    - Compliance: 7-year data retention (CBN regulation)
+    - Security: validate actor_id for manual transitions
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>transitionState</name>
+      <kind>function signature</kind>
+      <signature>transitionState(escrowHoldId: string, toState: EscrowState, actorId: string, reason: string): Promise&lt;{ success: boolean, error?: string }&gt;</signature>
+      <path>src/lib/escrow-state-machine.ts</path>
+    </interface>
+    <interface>
+      <name>findExpiredHolds</name>
+      <kind>function signature</kind>
+      <signature>findExpiredHolds(): Promise&lt;string[]&gt;</signature>
+      <path>src/lib/escrow-auto-release.ts</path>
+    </interface>
+    <interface>
+      <name>releaseExpiredHolds</name>
+      <kind>function signature</kind>
+      <signature>releaseExpiredHolds(escrowHoldIds: string[]): Promise&lt;void&gt;</signature>
+      <path>src/lib/escrow-auto-release.ts</path>
+    </interface>
+    <interface>
+      <name>escrow_holds table</name>
+      <kind>database table</kind>
+      <signature>
+        id: uuid (PK)
+        transaction_id: uuid (FK → transactions.id)
+        merchant_id: uuid (FK → merchants.id)
+        amount: integer
+        state: escrowStateEnum (HELD, RELEASED, DISPUTED, REFUNDED)
+        held_at: timestamp
+        released_at: timestamp
+        created_at: timestamp
+        updated_at: timestamp
+        Indexes: state, held_at, (state, held_at) composite
+      </signature>
+      <path>src/db/schema.ts</path>
+    </interface>
+    <interface>
+      <name>escrow_audit_log table</name>
+      <kind>database table</kind>
+      <signature>
+        id: uuid (PK)
+        escrow_hold_id: uuid (FK → escrow_holds.id)
+        from_state: text
+        to_state: text
+        actor_id: text
+        reason: text
+        created_at: timestamp
+      </signature>
+      <path>src/db/schema.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Test framework: Vitest (configured in prep sprint Day 1). Test files follow src/**/__tests__/*.test.ts pattern. Use describe, it, expect from Vitest. Mock database calls using vi.fn() and vi.spyOn(). Target 100% code coverage for state machine logic. Follow test patterns from useOnlineStatus.test.ts and email-domain.test.ts.
+    </standards>
+    <locations>
+      src/lib/__tests__/escrow-state-machine.test.ts
+      src/lib/__tests__/escrow-auto-release.test.ts
+    </locations>
+    <ideas>
+      AC1: Test escrow_holds table creation with correct enums and indexes
+      AC2: Test valid transitions (HELD→RELEASED, HELD→DISPUTED, DISPUTED→RELEASED, DISPUTED→REFUNDED)
+      AC2: Test invalid transitions (RELEASED→HELD, REFUNDED→RELEASED) expect errors
+      AC3: Test auto-release query finds holds older than 7 days
+      AC3: Test auto-release skips disputed holds
+      AC4: Test all state transitions create audit log entries with actor_id and timestamp
+      AC5: Test double-release attempt is idempotent (second call succeeds with no-op)
+      AC5: Test concurrent release attempts (row-level locking prevents race condition)
+      AC5: Test transition with non-existent escrow_hold_id fails gracefully
+      AC6: Test state machine exports from src/lib/escrow-state-machine.ts
+    </ideas>
+  </tests>
+</story-context>

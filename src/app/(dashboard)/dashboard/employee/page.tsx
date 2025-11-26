@@ -116,9 +116,9 @@ export default async function EmployeeDashboard() {
                     <p className="font-inter mb-4 opacity-90">
                         Complete your profile and start exploring exclusive deals from our merchant partners.
                     </p>
-                    <button className="bg-white text-electric-royal-blue px-6 py-2 rounded-lg font-outfit font-semibold hover:bg-gray-100 transition-colors">
+                    <a href="/dashboard/employee/marketplace" className="inline-block bg-white text-electric-royal-blue px-6 py-2 rounded-lg font-outfit font-semibold hover:bg-gray-100 transition-colors">
                         Browse Deals
-                    </button>
+                    </a>
                 </div>
             </main>
         </div>

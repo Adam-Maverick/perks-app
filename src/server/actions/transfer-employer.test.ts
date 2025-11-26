@@ -23,12 +23,12 @@ vi.mock('@/db', () => ({
                 findMany: vi.fn(),
             },
         },
-        transaction: vi.fn((callback) => callback({
-            update: vi.fn().mockReturnThis(),
+        update: vi.fn(() => ({
             set: vi.fn().mockReturnThis(),
-            where: vi.fn().mockReturnThis(),
-            insert: vi.fn().mockReturnThis(),
-            values: vi.fn().mockReturnThis(),
+            where: vi.fn().mockResolvedValue(undefined),
+        })),
+        insert: vi.fn(() => ({
+            values: vi.fn().mockResolvedValue(undefined),
         })),
     },
 }));
@@ -113,6 +113,7 @@ describe('transferEmployer', () => {
 
         expect(result.success).toBe(true);
         expect(result.data?.newEmployerName).toBe('New Corp');
-        expect(db.transaction).toHaveBeenCalled();
+        expect(db.update).toHaveBeenCalled();
+        expect(db.insert).toHaveBeenCalled();
     });
 });

@@ -84,21 +84,32 @@ export const wallets = pgTable('wallets', {
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Transactions Table
+// Transactions Table (Extended for Story 3.2: Paystack Integration)
 export const transactionTypeEnum = pgEnum('transaction_type', ['credit', 'debit']);
 export const transactionStatusEnum = pgEnum('transaction_status', ['pending', 'completed', 'failed']);
 
 export const transactions = pgTable('transactions', {
     id: uuid('id').defaultRandom().primaryKey(),
-    walletId: uuid('wallet_id').references(() => wallets.id).notNull(),
-    userId: text('user_id').references(() => users.id).notNull(), // Redundant but useful for portability checks
+    walletId: uuid('wallet_id').references(() => wallets.id),  // Nullable for payment transactions
+    userId: text('user_id').references(() => users.id).notNull(),
     type: transactionTypeEnum('type').notNull(),
     amount: integer('amount').notNull(),
     description: text('description'),
     reference: text('reference').unique(),
     status: transactionStatusEnum('status').default('pending').notNull(),
+
+    // Story 3.2: Paystack payment transaction fields
+    dealId: uuid('deal_id').references(() => deals.id),  // Nullable for wallet transactions
+    merchantId: uuid('merchant_id').references(() => merchants.id),  // Nullable for wallet transactions
+    escrowHoldId: uuid('escrow_hold_id'),  // Nullable until escrow created. No FK to avoid circular dependency.
+    paystackReference: text('paystack_reference').unique(),  // Paystack transaction reference
+
     createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ({
+    paystackRefIdx: index('transactions_paystack_ref_idx').on(table.paystackReference),
+    statusIdx: index('transactions_status_idx').on(table.status),
+    userIdx: index('transactions_user_id_idx').on(table.userId),
+}));
 
 // Relations
 export const employeesRelations = relations(employees, ({ one }) => ({
@@ -123,6 +134,8 @@ export const employersRelations = relations(employers, ({ one }) => ({
     }),
 }));
 
+
+
 // ============================================
 // MARKETPLACE SCHEMA (Story 2.1)
 // ============================================
@@ -139,7 +152,7 @@ export const categories = pgTable('categories', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-// Merchants Table
+// Merchants Table (Extended for Story 3.2: Paystack Transfer Recipients)
 export const merchants = pgTable('merchants', {
     id: uuid('id').defaultRandom().primaryKey(),
     name: text('name').notNull(),
@@ -148,6 +161,7 @@ export const merchants = pgTable('merchants', {
     trustLevel: trustLevelEnum('trust_level').notNull(),
     location: text('location'), // e.g., "Lagos, Nigeria"
     contactInfo: text('contact_info'), // JSON string with phone/email
+    paystackRecipientCode: text('paystack_recipient_code'),  // Story 3.2: Transfer Recipient code
     createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
     trustLevelIdx: index('merchants_trust_level_idx').on(table.trustLevel),
@@ -203,6 +217,84 @@ export const dealsRelations = relations(deals, ({ one }) => ({
     category: one(categories, {
         fields: [deals.categoryId],
         references: [categories.id],
+    }),
+}));
+
+// ============================================
+// ESCROW SCHEMA (Story 3.1)
+// ============================================
+
+// Escrow State Enum
+export const escrowStateEnum = pgEnum('escrow_state', ['HELD', 'RELEASED', 'DISPUTED', 'REFUNDED']);
+
+// Escrow Holds Table
+export const escrowHolds = pgTable('escrow_holds', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    transactionId: uuid('transaction_id').references(() => transactions.id).notNull(),
+    merchantId: uuid('merchant_id').references(() => merchants.id).notNull(),
+    amount: integer('amount').notNull(), // In kobo
+    state: escrowStateEnum('state').default('HELD').notNull(),
+    heldAt: timestamp('held_at').defaultNow().notNull(),
+    releasedAt: timestamp('released_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+    stateIdx: index('escrow_holds_state_idx').on(table.state),
+    heldAtIdx: index('escrow_holds_held_at_idx').on(table.heldAt),
+}));
+
+// Escrow Audit Log Table (Compliance)
+export const escrowAuditLog = pgTable('escrow_audit_log', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    escrowHoldId: uuid('escrow_hold_id').references(() => escrowHolds.id).notNull(),
+    fromState: text('from_state'), // Nullable for initial creation
+    toState: text('to_state').notNull(),
+    actorId: text('actor_id').notNull(), // User ID or 'SYSTEM'
+    reason: text('reason').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Escrow Relations
+export const escrowHoldsRelations = relations(escrowHolds, ({ one, many }) => ({
+    transaction: one(transactions, {
+        fields: [escrowHolds.transactionId],
+        references: [transactions.id],
+    }),
+    merchant: one(merchants, {
+        fields: [escrowHolds.merchantId],
+        references: [merchants.id],
+    }),
+    auditLogs: many(escrowAuditLog),
+}));
+
+export const escrowAuditLogRelations = relations(escrowAuditLog, ({ one }) => ({
+    escrowHold: one(escrowHolds, {
+        fields: [escrowAuditLog.escrowHoldId],
+        references: [escrowHolds.id],
+    }),
+}));
+
+// Transactions Relations (Story 3.2) - Moved to end to avoid circular dependencies
+export const transactionsRelations = relations(transactions, ({ one }) => ({
+    user: one(users, {
+        fields: [transactions.userId],
+        references: [users.id],
+    }),
+    wallet: one(wallets, {
+        fields: [transactions.walletId],
+        references: [wallets.id],
+    }),
+    deal: one(deals, {
+        fields: [transactions.dealId],
+        references: [deals.id],
+    }),
+    merchant: one(merchants, {
+        fields: [transactions.merchantId],
+        references: [merchants.id],
+    }),
+    escrowHold: one(escrowHolds, {
+        fields: [transactions.escrowHoldId],
+        references: [escrowHolds.id],
     }),
 }));
 

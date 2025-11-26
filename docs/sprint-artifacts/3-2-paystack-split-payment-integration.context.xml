@@ -1,0 +1,286 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.2</storyId>
+    <title>Paystack Transfer Integration (Escrow Collection)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/3-2-paystack-split-payment-integration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>to integrate Paystack Transfers</iWant>
+    <soThat>escrow funds are collected and held until release</soThat>
+    <tasks>
+      - Verify Paystack Transfers API (AC: 1)
+      - Create Transactions Table Schema (AC: 4, 6)
+      - Implement Paystack Standard Checkout (AC: 1)
+      - Implement Escrow Hold Creation (AC: 2)
+      - Implement Paystack Webhook Handler (AC: 5, 6)
+      - Implement Merchant Notification (AC: 3)
+      - Implement Transfer Recipient Management (AC: 1)
+      - Add Error Handling and Edge Cases (AC: 6)
+      - Write Unit Tests (AC: 1-6)
+      - Integration Testing (AC: 1-6)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Full payment (100%) collected into Platform Paystack Balance
+    2. Escrow hold recorded in escrow_holds with state HELD
+    3. Merchant receives notification: "Payment received. Funds held in escrow until delivery confirmed."
+    4. Transaction linked to escrow hold via transaction_id
+    5. Paystack webhook /api/webhooks/paystack updates transaction status on charge.success
+    6. If payment fails, no escrow record is created
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 3.2: Paystack Transfer Integration</section>
+        <snippet>Use Paystack Standard Checkout (Collect to Balance). Create Server Action createEscrowTransaction. Implement webhook handler with signature verification. Pivot Note: Do NOT use Split Payments. Funds must be held in balance for 7 days.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epic-3-prep-sprint.md</path>
+        <title>Epic 3 Prep Sprint - Technical Spike</title>
+        <section>1. Paystack Integration (Pivoted to Transfers)</section>
+        <snippet>Collections + Transfers architecture: Accept payment (100%) from user into Platform Balance. Create Transfer Recipient for merchant. After 7 days, trigger Transfer to recipient. POST /transferrecipient and POST /transfer endpoints.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epic-3-prep-sprint.md</path>
+        <title>Epic 3 Prep Sprint - Technical Spike</title>
+        <section>7. Architectural Review (Winston)</section>
+        <snippet>Pivot from Split Payments to Collections + Transfers is architecturally sound and necessary. Critical Requirements: Reconciliation job (SUM(Escrow HELD) == Paystack Balance), Refunds via Paystack Refund API, Idempotency keys for all Transfer/Refund calls.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>ADR-003: Paystack Collections + Transfers</section>
+        <snippet>Chosen to enable 7-day escrow holds. Collections gather 100% of payment into Platform Balance, then Transfers release funds to merchants after escrow period. Split Payments were unsuitable (T+1 settlement).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Implementation Patterns</section>
+        <snippet>Server Actions for Mutations: Define actions in src/server/actions. Validate with Zod. Return ActionResponse type {success: boolean, data?: T, error?: string}. Error Handling: Use sonner for toast notifications. Throw specific errors caught by Server Action wrapper.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Security Architecture</section>
+        <snippet>Webhook signature verification required. Middleware protects routes. RLS-like logic in Server Actions checks orgId. All inputs validated with Zod. Secrets stored in .env.local.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>escrowHolds</symbol>
+        <lines>217-230</lines>
+        <reason>Existing escrow_holds table schema. Story 3.2 must link transactions to this table via escrow_hold_id foreign key.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>escrowStateEnum</symbol>
+        <lines>214</lines>
+        <reason>Escrow state enum (HELD, RELEASED, DISPUTED, REFUNDED). New escrow holds must be created with state HELD.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>transactions</symbol>
+        <lines>91-101</lines>
+        <reason>Existing transactions table. Story 3.2 must extend this schema to add deal_id, merchant_id, escrow_hold_id, and paystack_reference fields.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>merchants</symbol>
+        <lines>143-154</lines>
+        <reason>Existing merchants table. Story 3.2 must add paystack_recipient_code field to store Transfer Recipient codes.</reason>
+      </artifact>
+      <artifact>
+        <path>src/lib/escrow-state-machine.ts</path>
+        <kind>library</kind>
+        <symbol>transitionState</symbol>
+        <lines>22-95</lines>
+        <reason>Core state machine function for managing escrow state transitions. Use this to create escrow holds with HELD state after successful payment.</reason>
+      </artifact>
+      <artifact>
+        <path>src/lib/escrow-auto-release.ts</path>
+        <kind>library</kind>
+        <symbol>findExpiredHolds</symbol>
+        <lines>10-25</lines>
+        <reason>Queries escrow holds older than 7 days. Referenced for understanding auto-release logic (implemented in Story 3.5).</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/actions/invitations.ts</path>
+        <kind>server-action</kind>
+        <symbol>validateInvitationCode</symbol>
+        <lines>1-50</lines>
+        <reason>Example Server Action pattern with Zod validation and ActionResponse type. Follow this pattern for payment actions.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@clerk/nextjs" version="^6.35.4">Authentication and user management</package>
+        <package name="@neondatabase/serverless" version="^1.0.2">Neon Postgres database driver (WebSocket-based, supports transactions)</package>
+        <package name="drizzle-orm" version="^0.44.7">TypeScript ORM for database operations</package>
+        <package name="next" version="^16.0.3">Next.js framework (App Router)</package>
+        <package name="react" version="^19.2.0">React library</package>
+        <package name="resend" version="^6.5.2">Email delivery service (for merchant notifications)</package>
+        <package name="svix" version="^1.81.0">Webhook signature verification library (can be used for Paystack webhooks)</package>
+        <package name="zod" version="^4.1.12">Schema validation library</package>
+      </node>
+      <dev>
+        <package name="vitest" version="^4.0.13">Test framework</package>
+        <package name="@testing-library/react" version="^16.3.0">React testing utilities</package>
+        <package name="@vitest/coverage-v8" version="^4.0.13">Code coverage reporting</package>
+        <package name="drizzle-kit" version="^0.31.7">Drizzle ORM migration tool</package>
+        <package name="typescript" version="^5">TypeScript compiler</package>
+      </dev>
+      <missing>
+        <package name="crypto">Node.js built-in crypto module (for HMAC-SHA512 webhook signature verification)</package>
+      </missing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - CRITICAL PIVOT: DO NOT use Split Payments API. MUST use Collections + Transfers model (collect 100% to Platform Balance, hold for 7 days, then transfer).
+    - All database mutations must use atomic transactions via db.transaction() to ensure consistency.
+    - Webhook signature verification is MANDATORY. Verify x-paystack-signature header using HMAC-SHA512 before processing any webhook.
+    - All Paystack API calls must use unique idempotency keys (transaction ID or escrow ID) to prevent double-spending.
+    - Transaction and escrow hold creation must be atomic (both succeed or both fail).
+    - All payment operations must be logged for 7-year retention (CBN compliance requirement).
+    - Never store card details (Paystack handles PCI compliance).
+    - All inputs must be validated with Zod before processing.
+    - Use Server Actions pattern for all mutations (defined in src/server/actions).
+    - Return ActionResponse type: {success: boolean, data?: T, error?: string}.
+    - Tests must be colocated in __tests__ folders following Vitest patterns.
+    - Test coverage target: 100% for payment logic.
+    - Database schema changes require running npx drizzle-kit push.
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Paystack Standard Checkout API</name>
+      <kind>REST endpoint</kind>
+      <signature>POST https://api.paystack.co/transaction/initialize
+Body: {
+  "email": "user@example.com",
+  "amount": "500000", // In kobo (₦5,000)
+  "reference": "unique-transaction-id",
+  "callback_url": "https://app.com/callback"
+}
+Response: {
+  "status": true,
+  "data": {
+    "authorization_url": "https://checkout.paystack.com/...",
+    "access_code": "...",
+    "reference": "unique-transaction-id"
+  }
+}</signature>
+      <path>External API</path>
+    </interface>
+    <interface>
+      <name>Paystack Transfer Recipient API</name>
+      <kind>REST endpoint</kind>
+      <signature>POST https://api.paystack.co/transferrecipient
+Body: {
+  "type": "nuban",
+  "name": "Merchant Name",
+  "account_number": "0123456789",
+  "bank_code": "044",
+  "currency": "NGN"
+}
+Response: {
+  "status": true,
+  "data": {
+    "recipient_code": "RCP_xxxx",
+    ...
+  }
+}</signature>
+      <path>External API</path>
+    </interface>
+    <interface>
+      <name>Paystack Webhook</name>
+      <kind>Webhook event</kind>
+      <signature>POST /api/webhooks/paystack
+Headers: {
+  "x-paystack-signature": "hmac-sha512-hash"
+}
+Body: {
+  "event": "charge.success",
+  "data": {
+    "reference": "unique-transaction-id",
+    "amount": 500000,
+    "status": "success",
+    ...
+  }
+}</signature>
+      <path>src/app/api/webhooks/paystack/route.ts</path>
+    </interface>
+    <interface>
+      <name>transitionState</name>
+      <kind>function signature</kind>
+      <signature>async function transitionState(
+  escrowHoldId: string,
+  toState: 'HELD' | 'RELEASED' | 'DISPUTED' | 'REFUNDED',
+  actorId: string,
+  reason: string
+): Promise&lt;{success: boolean, error?: string}&gt;</signature>
+      <path>src/lib/escrow-state-machine.ts</path>
+    </interface>
+    <interface>
+      <name>createEscrowTransaction (to be implemented)</name>
+      <kind>Server Action</kind>
+      <signature>async function createEscrowTransaction(
+  dealId: string,
+  amount: number,
+  merchantId: string
+): Promise&lt;ActionResponse&lt;{authorizationUrl: string, reference: string}&gt;&gt;</signature>
+      <path>src/server/actions/payments.ts</path>
+    </interface>
+    <interface>
+      <name>createEscrowHold (to be implemented)</name>
+      <kind>Server Action</kind>
+      <signature>async function createEscrowHold(
+  transactionId: string,
+  merchantId: string,
+  amount: number
+): Promise&lt;ActionResponse&lt;{escrowHoldId: string}&gt;&gt;</signature>
+      <path>src/server/actions/escrow.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Test framework: Vitest (configured in prep sprint Day 1). Test files in src/**/__tests__/*.test.ts pattern. Use describe, it, expect from Vitest. Mock external APIs using vi.fn() and vi.spyOn(). Coverage target: 100% for payment logic. Follow patterns from existing tests (src/server/actions/__tests__/invitations.test.ts).
+    </standards>
+    <locations>
+      - src/server/actions/__tests__/payments.test.ts
+      - src/server/actions/__tests__/escrow.test.ts
+      - src/app/api/webhooks/paystack/__tests__/route.test.ts
+    </locations>
+    <ideas>
+      <test ac="1">Test createEscrowTransaction with valid deal ID → verify Paystack API called with correct payload</test>
+      <test ac="1">Test createEscrowTransaction with invalid deal ID → verify error returned</test>
+      <test ac="2">Test createEscrowHold → verify escrow hold created with HELD state</test>
+      <test ac="2">Test atomic transaction creation → verify both transaction and escrow hold created or both fail</test>
+      <test ac="3">Test merchant notification email → verify Resend API called with correct template</test>
+      <test ac="4">Test transaction-escrow linking → verify foreign key relationship</test>
+      <test ac="5">Test webhook signature verification → verify valid signature accepted, invalid rejected</test>
+      <test ac="5">Test charge.success event → verify transaction status updated, escrow created, merchant notified</test>
+      <test ac="6">Test charge.failed event → verify transaction status updated to FAILED, no escrow created</test>
+      <test ac="6">Test duplicate webhook → verify idempotency (no duplicate escrow holds)</test>
+      <test>Test Transfer Recipient creation → verify recipient_code stored in merchants table</test>
+      <test>Test Transfer Recipient creation with missing bank details → verify error handling</test>
+      <test>Test Paystack API failure → verify retry logic (Inngest)</test>
+    </ideas>
+  </tests>
+</story-context>

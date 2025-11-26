@@ -10,7 +10,7 @@
 | Component | Testability Challenge | Mitigation Strategy | Risk Score |
 | :--- | :--- | :--- | :--- |
 | **Clerk (Auth)** | External dependency, rate limits, complex flows (2FA, SSO) | Use Clerk's testing tokens or mock auth state in Playwright (`storageState`). Avoid hitting real API in CI. | Medium |
-| **Paystack (Payments)** | Financial transactions, webhooks, split payments | Use Paystack Test Mode keys. Mock webhooks for local/CI testing. Contract tests for API stability. | High |
+| **Paystack (Payments)** | Financial transactions, webhooks, transfers | Use Paystack Test Mode keys. Mock webhooks for local/CI testing. Contract tests for API stability. | High |
 | **Inngest (Cron/Queues)** | Asynchronous, time-dependent (14-day escrow) | Use Inngest Dev Server for local testing. Mock Inngest SDK in unit tests. Force run functions in E2E. | Medium |
 | **Neon/Drizzle (DB)** | Serverless connection pooling | Use a dedicated test database (Dockerized Postgres or separate Neon branch) for integration tests. Transactional rollback for speed. | Low |
 | **Serwist (PWA)** | Service worker caching, offline mode | Use Playwright's offline emulation. Validate SW registration and cache hits/misses. | Medium |
@@ -22,7 +22,7 @@
 | **ASR-001** | **Performance**: PWA FCP < 2s on 3G | Automated Lighthouse CI checks. Playwright tests with network throttling (Fast 3G). | Lighthouse, Playwright |
 | **ASR-002** | **Security**: 2FA & NDPR Compliance | Security headers check. Dependency scanning. Authz tests for multi-tenant isolation (Org A cannot see Org B). Data retention policy tests (verify deletion). | OWASP ZAP (optional), Playwright (Authz), npm audit |
 | **ASR-003** | **Reliability**: Offline Mode | E2E tests verifying read-only access when offline. Sync recovery tests (actions queued when offline are sent when online). | Playwright (`context.setOffline(true)`) |
-| **ASR-004** | **Integrity**: Escrow Logic | High-coverage unit tests for state machine (HELD -> RELEASED/DISPUTED). Integration tests for Paystack split payments (verify correct amounts to merchant vs escrow). | Vitest, Jest |
+| **ASR-004** | **Integrity**: Escrow Logic | High-coverage unit tests for state machine (HELD -> RELEASED/DISPUTED). Integration tests for Paystack Transfers (verify correct amounts transferred to merchant after escrow release). | Vitest, Jest |
 | **ASR-005** | **Compliance**: Tax Reporting | Unit tests for tax calculation logic (150% deduction rules). Snapshot testing for generated report formats. | Vitest |
 
 ## 2. Test Levels Strategy

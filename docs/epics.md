@@ -422,17 +422,17 @@ So that funds can be held and released based on business rules.
 
 ---
 
-### Story 3.2: Paystack Split Payment Integration
+### Story 3.2: Paystack Transfer Integration (Escrow Collection)
 
 As a **developer**,
-I want to integrate Paystack Split Payments,
-So that escrow funds are automatically held during checkout.
+I want to integrate Paystack Transfers,
+So that escrow funds are collected and held until release.
 
 **Acceptance Criteria:**
 
 **Given** a user is purchasing from an EMERGING merchant
 **When** they complete checkout
-**Then** Paystack splits the payment: Platform Fee (2%) + Escrow Hold (98%)
+**Then** The full payment (100%) is collected into the Platform Paystack Balance
 **And** The escrow hold is recorded in `escrow_holds` with state HELD
 **And** The merchant receives a notification: "Payment received. Funds held in escrow until delivery confirmed."
 **And** The transaction is linked to the escrow hold via `transaction_id`
@@ -442,11 +442,11 @@ So that escrow funds are automatically held during checkout.
 **Prerequisites:** Story 3.1
 
 **Technical Notes:**
-- Use Paystack Split Payments API (subaccounts for merchants)
+- Use Paystack Standard Checkout (Collect to Balance)
 - Create Server Action `createEscrowTransaction(dealId, amount, merchantId)`
 - Implement webhook handler with signature verification
 - Create `transactions` table (user_id, deal_id, amount, status, escrow_hold_id)
-- Send merchant notification via Resend
+- **Pivot Note:** Do NOT use Split Payments. Funds must be held in balance for 7 days.
 - Test with Paystack test keys
 
 ---
@@ -523,11 +523,11 @@ So that merchants are paid even if employees forget to confirm.
 **Given** an escrow hold has been in HELD state for 14 days
 **When** the daily Inngest cron job runs
 **Then** the escrow state changes to RELEASED
-**And** The merchant receives payment
+**And** The system triggers a Paystack Transfer to the merchant's bank account
 **And** The employee receives an email: "Your escrow for [Merchant] has been auto-released. No action needed."
 **And** The transaction shows "Auto-Completed" status
 **And** Reminder emails are sent on Day 7 and Day 12 (FR11)
-**And** The cron job processes all eligible holds in a single batch
+**And** A reconciliation job runs to verify `SUM(Escrow HELD) == Paystack Balance`
 
 **Prerequisites:** Story 3.1
 
@@ -535,10 +535,11 @@ So that merchants are paid even if employees forget to confirm.
 - Create Inngest function `autoReleaseEscrow` in `src/inngest/auto-release.ts`
 - Schedule to run daily at 2 AM WAT
 - Query `escrow_holds` where `state = 'HELD' AND held_at < NOW() - INTERVAL '14 days'`
-- Batch update states and trigger Paystack payouts
+- Batch update states and trigger Paystack Transfers (using Idempotency Keys)
+- Implement reconciliation logic in separate Inngest function
 - Send reminder emails on Day 7 and Day 12 using separate Inngest function
 - Add logging for monitoring (how many holds released per day)
-- Test: Mock 14-day-old hold → run cron → verify release
+- Test: Mock 14-day-old hold → run cron → verify release and transfer call
 
 ---
 

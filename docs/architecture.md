@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Stipends uses a modern serverless stack (Next.js 15, Neon Postgres, Clerk Auth) optimized for rapid development and scalability. The architecture prioritizes mobile performance (PWA with Serwist), security (encryption, 2FA, audit logs), and fintech compliance (escrow state machine, immutable transaction logs). Key integrations include Paystack for split payments and Inngest for scheduled tasks (auto-release, reminders).
+Stipends uses a modern serverless stack (Next.js 15, Neon Postgres, Clerk Auth) optimized for rapid development and scalability. The architecture prioritizes mobile performance (PWA with Serwist), security (encryption, 2FA, audit logs), and fintech compliance (escrow state machine, immutable transaction logs). Key integrations include Paystack for payment collection and transfers (7-day escrow) and Inngest for scheduled tasks (auto-release, reminders).
 
 ## Project Initialization
 
@@ -27,7 +27,7 @@ This establishes the base architecture with these decisions:
 
 | Core Stack | Database | v16 (Postgres) | - | Neon (Serverless Postgres) + Drizzle ORM |
 | Core Stack | Authentication | Latest | - | Clerk (B2B Organizations for Employer management) |
-| Core Stack | Payments | Latest | - | Paystack (Split Payments for Escrow) |
+| Core Stack | Payments | Latest | - | Paystack (Collections + Transfers for Escrow) |
 | Core Stack | State Management | Latest | - | TanStack Query (Server) + React Context (UI) |
 | Core Stack | Email | Latest | - | Resend + React Email |
 | Core Stack | Scheduling | Latest | - | Inngest (Serverless Queues & Cron) |
@@ -212,7 +212,7 @@ npm run dev
 
 1.  **ADR-001: Next.js 15 Starter**: Chosen for stability and PWA support via Serwist.
 2.  **ADR-002: Clerk + Neon**: Chosen for speed of implementation (B2B features) and serverless scalability.
-3.  **ADR-003: Paystack Split Payments**: Chosen to simplify Escrow logic without needing a full banking license initially.
+3.  **ADR-003: Paystack Collections + Transfers**: Chosen to enable 7-day escrow holds. Collections gather 100% of payment into Platform Balance, then Transfers release funds to merchants after escrow period. Split Payments were unsuitable (T+1 settlement).
 4.  **ADR-004: Inngest**: Chosen for reliable serverless scheduling (escrow release) without infrastructure management.
 
 ---
