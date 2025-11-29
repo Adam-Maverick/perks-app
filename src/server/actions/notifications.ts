@@ -107,8 +107,8 @@ export async function sendConfirmationEmails(
                 MerchantPaymentReleasedEmail({
                     merchantName: merchant.name,
                     amount: transaction.amount,
-                    orderId: transaction.paystackReference || transaction.id,
-                    arrivalDate: "instantly (or within 24 hours)",
+                    transactionId: transaction.paystackReference || transaction.id,
+                    customerName: user.firstName || "Customer",
                 })
             );
 

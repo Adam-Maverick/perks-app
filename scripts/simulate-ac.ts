@@ -36,6 +36,8 @@ async function simulateLiveAC() {
 
         // Filter for our user (since we can't filter by transaction.userId directly in findFirst easily without joins)
         // Actually we can, but let's just find one and check
+        let targetHold: any;
+
         if (!hold || hold.transaction.userId !== userId) {
             // Let's try to find specifically for this user
             const userTxn = await db.query.transactions.findFirst({
@@ -54,9 +56,9 @@ async function simulateLiveAC() {
                 return;
             }
 
-            var targetHold = userTxn.escrowHold;
+            targetHold = userTxn.escrowHold;
         } else {
-            var targetHold = hold;
+            targetHold = hold;
         }
 
         console.log(`\n📦 Found Target Transaction:`);
