@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { EscrowStatusBadge } from "@/components/modules/escrow/EscrowStatusBadge";
 import { TransactionActions } from "@/components/modules/escrow/TransactionActions";
 import { format } from "date-fns";
-import { ArrowLeft, Store, Calendar, CreditCard } from "lucide-react";
+import { ArrowLeft, Store, Calendar, CreditCard, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -26,7 +26,11 @@ export default async function TransactionPage({ params }: PageProps) {
         with: {
             merchant: true,
             deal: true,
-            escrowHold: true,
+            escrowHold: {
+                with: {
+                    disputes: true,
+                },
+            },
         },
     });
 
@@ -43,6 +47,9 @@ export default async function TransactionPage({ params }: PageProps) {
     });
 
     const escrowState = transaction.escrowHold?.state || null;
+    const hold = transaction.escrowHold;
+    // Get the most recent dispute if any exist
+    const dispute = hold?.disputes && hold.disputes.length > 0 ? hold.disputes[0] : undefined;
 
     return (
         <div className="container max-w-2xl mx-auto py-8 px-4">
@@ -66,6 +73,28 @@ export default async function TransactionPage({ params }: PageProps) {
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    {/* Dispute Status Alert */}
+                    {dispute && (
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start space-x-3">
+                            <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                                <h3 className="font-semibold text-orange-900">Dispute Filed</h3>
+                                <p className="text-sm text-orange-800 mt-1">
+                                    Status: <span className="font-medium">{dispute.status.replace(/_/g, " ")}</span>
+                                </p>
+                                <p className="text-xs text-orange-700 mt-2">
+                                    We are reviewing your case. You will be notified of any updates.
+                                </p>
+                                {dispute.resolution && (
+                                    <div className="mt-2 pt-2 border-t border-orange-200">
+                                        <p className="text-sm font-medium text-orange-900">Resolution:</p>
+                                        <p className="text-sm text-orange-800">{dispute.resolution}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Deal Info */}
                     <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                         <h3 className="font-semibold text-gray-900 flex items-center">
@@ -116,6 +145,14 @@ export default async function TransactionPage({ params }: PageProps) {
                                 </div>
                             )}
 
+                            {dispute && (
+                                <div className="relative">
+                                    <div className="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-orange-600"></div>
+                                    <p className="font-medium text-orange-700">Dispute Filed</p>
+                                    <p className="text-gray-500">{format(dispute.createdAt, "PPP p")}</p>
+                                </div>
+                            )}
+
                             {transaction.escrowHold?.releasedAt && (
                                 <div className="relative">
                                     <div className="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-green-500"></div>
@@ -132,6 +169,7 @@ export default async function TransactionPage({ params }: PageProps) {
                         escrowHoldId={transaction.escrowHoldId}
                         escrowState={escrowState}
                         isOwner={true}
+                        hasDispute={!!dispute}
                     />
 
                     {escrowState === 'RELEASED' && (

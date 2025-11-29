@@ -23,6 +23,66 @@ const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 const PAYSTACK_API_URL = "https://api.paystack.co";
 
 /**
+ * Refund a transaction via Paystack
+ * AC#7: If resolved in employee's favor, the escrow is REFUNDED
+ */
+export async function refundTransaction(
+    transactionId: string,
+    amount?: number
+): Promise<ActionResponse<{ refundId: string }>> {
+    if (!PAYSTACK_SECRET_KEY) {
+        return { success: false, error: "Paystack secret key not configured" };
+    }
+
+    try {
+        // 1. Get transaction details
+        const transaction = await db.query.transactions.findFirst({
+            where: eq(transactions.id, transactionId),
+        });
+
+        if (!transaction) {
+            return { success: false, error: "Transaction not found" };
+        }
+
+        if (!transaction.paystackReference) {
+            return { success: false, error: "Transaction has no Paystack reference" };
+        }
+
+        // 2. Call Paystack Refund API
+        const response = await fetch("https://api.paystack.co/refund", {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                transaction: transaction.paystackReference,
+                amount: amount, // Optional, defaults to full amount
+                merchant_note: "Dispute resolved in employee's favor",
+            }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.status) {
+            console.error("Paystack refund error:", data);
+            return { success: false, error: data.message || "Refund failed" };
+        }
+
+        return {
+            success: true,
+            data: {
+                refundId: data.data.id.toString(),
+            },
+        };
+
+    } catch (error) {
+        console.error("Refund error:", error);
+        return { success: false, error: "Failed to process refund" };
+    }
+}
+
+/**
  * Initialize Paystack transaction for escrow payment
  * AC#1: Full payment (100%) collected into Platform Paystack Balance
  */

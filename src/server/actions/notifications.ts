@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { merchants, transactions } from "@/db/schema";
+import { merchants, transactions, disputes } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { ActionResponse } from "@/types";
 import { z } from "zod";
@@ -10,6 +10,9 @@ import { render } from "@react-email/render";
 import EmployeeConfirmationEmail from "@/components/emails/EmployeeConfirmationEmail";
 import MerchantPaymentReleasedEmail from "@/components/emails/MerchantPaymentReleasedEmail";
 import MerchantEscrowNotification from "@/components/emails/merchant-escrow-notification";
+import EmployeeDisputeSubmittedEmail from "@/components/emails/employee-dispute-submitted";
+import MerchantDisputeNotificationEmail from "@/components/emails/merchant-dispute-notification";
+import AdminDisputeNotificationEmail from "@/components/emails/admin-dispute-notification";
 
 // Validation schema
 const sendMerchantEscrowNotificationSchema = z.object({
@@ -19,8 +22,6 @@ const sendMerchantEscrowNotificationSchema = z.object({
 
 // Resend configuration
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-
 
 /**
  * Send confirmation emails to employee and merchant
@@ -138,8 +139,6 @@ export async function sendConfirmationEmails(
     }
 }
 
-
-
 /**
  * Send escrow notification email to merchant
  * AC#3: Merchant receives notification: "Payment received. Funds held in escrow until delivery confirmed."
@@ -248,5 +247,116 @@ export async function sendMerchantEscrowNotification(
             success: false,
             error: "An unexpected error occurred.",
         };
+    }
+}
+
+/**
+ * Send dispute notifications to Employee, Merchant, and Admin
+ * AC#3, AC#5
+ */
+export async function sendDisputeNotifications(disputeId: string): Promise<ActionResponse<void>> {
+    console.log("📧 sendDisputeNotifications called with disputeId:", disputeId);
+
+    try {
+        // 1. Fetch dispute details with relations
+        const dispute = await db.query.disputes.findFirst({
+            where: eq(disputes.id, disputeId),
+            with: {
+                escrowHold: {
+                    with: {
+                        transaction: {
+                            with: {
+                                merchant: true,
+                                user: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!dispute || !dispute.escrowHold || !dispute.escrowHold.transaction) {
+            console.error("❌ Dispute details not found");
+            return { success: false, error: "Dispute details not found" };
+        }
+
+        const transaction = dispute.escrowHold.transaction;
+        const merchant = transaction.merchant;
+        const user = transaction.user;
+
+        if (!merchant || !user) {
+            console.error("❌ Merchant or User not found");
+            return { success: false, error: "Merchant or User not found" };
+        }
+
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const disputeUrl = `${appUrl}/dashboard/employee/transactions/${transaction.id}`;
+        const adminUrl = `${appUrl}/dashboard/admin/disputes/${dispute.id}`;
+
+        // 2. Send Employee Email
+        if (user.email) {
+            await resend.emails.send({
+                from: "Stipends <onboarding@resend.dev>",
+                to: user.email,
+                subject: "Your dispute has been submitted",
+                react: EmployeeDisputeSubmittedEmail({
+                    employeeName: user.firstName || "Employee",
+                    transactionId: transaction.paystackReference || transaction.id,
+                    disputeId: dispute.id,
+                    merchantName: merchant.name,
+                    disputeUrl,
+                }),
+            });
+            console.log("✅ Employee dispute email sent");
+        }
+
+        // 3. Send Merchant Email
+        let merchantEmail = "";
+        try {
+            const contactInfo = merchant.contactInfo ? JSON.parse(merchant.contactInfo) : {};
+            merchantEmail = contactInfo.email;
+        } catch (e) {
+            console.error("Error parsing merchant contact info", e);
+        }
+
+        if (merchantEmail) {
+            await resend.emails.send({
+                from: "Stipends <onboarding@resend.dev>",
+                to: merchantEmail,
+                subject: `Dispute filed for transaction ${transaction.paystackReference || transaction.id}`,
+                react: MerchantDisputeNotificationEmail({
+                    merchantName: merchant.name,
+                    transactionId: transaction.paystackReference || transaction.id,
+                    disputeId: dispute.id,
+                    employeeDescription: dispute.employeeDescription,
+                }),
+            });
+            console.log("✅ Merchant dispute email sent");
+        }
+
+        // 4. Send Admin Email
+        const adminEmail = process.env.ADMIN_EMAIL;
+        if (adminEmail) {
+            await resend.emails.send({
+                from: "Stipends <onboarding@resend.dev>",
+                to: adminEmail,
+                subject: "New dispute requires review",
+                react: AdminDisputeNotificationEmail({
+                    transactionId: transaction.paystackReference || transaction.id,
+                    disputeId: dispute.id,
+                    employeeName: `${user.firstName} ${user.lastName}`,
+                    merchantName: merchant.name,
+                    employeeDescription: dispute.employeeDescription,
+                    adminUrl,
+                }),
+            });
+            console.log("✅ Admin dispute email sent");
+        }
+
+        return { success: true };
+
+    } catch (error) {
+        console.error("❌ Error sending dispute notifications:", error);
+        return { success: false, error: "Failed to send notifications" };
     }
 }

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, pgEnum, integer, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, pgEnum, integer, index, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Enums
@@ -12,6 +12,7 @@ export const users = pgTable('users', {
     firstName: text('first_name'),
     lastName: text('last_name'),
     imageUrl: text('image_url'),
+    isFlagged: boolean('is_flagged').default(false).notNull(), // Story 3.4: Fraud detection flag
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -254,6 +255,28 @@ export const escrowAuditLog = pgTable('escrow_audit_log', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Disputes Table (Story 3.4)
+export const disputeStatusEnum = pgEnum('dispute_status', ['PENDING', 'UNDER_REVIEW', 'RESOLVED_EMPLOYEE_FAVOR', 'RESOLVED_MERCHANT_FAVOR']);
+
+export const disputes = pgTable('disputes', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    escrowHoldId: uuid('escrow_hold_id').references(() => escrowHolds.id).notNull(),
+    employeeEvidenceUrls: text('employee_evidence_urls').array(), // URLs from Vercel Blob
+    employeeDescription: text('employee_description').notNull(),
+    merchantEvidenceUrls: text('merchant_evidence_urls').array(),
+    merchantResponse: text('merchant_response'),
+    status: disputeStatusEnum('status').default('PENDING').notNull(),
+    resolution: text('resolution'), // Notes on resolution
+    resolvedBy: text('resolved_by').references(() => users.id), // Admin ID
+    resolvedAt: timestamp('resolved_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+    statusIdx: index('disputes_status_idx').on(table.status),
+    escrowHoldIdx: index('disputes_escrow_hold_id_idx').on(table.escrowHoldId),
+    createdAtIdx: index('disputes_created_at_idx').on(table.createdAt),
+}));
+
 // Escrow Relations
 export const escrowHoldsRelations = relations(escrowHolds, ({ one, many }) => ({
     transaction: one(transactions, {
@@ -265,6 +288,18 @@ export const escrowHoldsRelations = relations(escrowHolds, ({ one, many }) => ({
         references: [merchants.id],
     }),
     auditLogs: many(escrowAuditLog),
+    disputes: many(disputes),
+}));
+
+export const disputesRelations = relations(disputes, ({ one }) => ({
+    escrowHold: one(escrowHolds, {
+        fields: [disputes.escrowHoldId],
+        references: [escrowHolds.id],
+    }),
+    resolvedByUser: one(users, {
+        fields: [disputes.resolvedBy],
+        references: [users.id],
+    }),
 }));
 
 export const escrowAuditLogRelations = relations(escrowAuditLog, ({ one }) => ({

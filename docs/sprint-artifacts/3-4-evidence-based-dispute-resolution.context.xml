@@ -1,0 +1,142 @@
+<story-context id="3-4-evidence-based-dispute-resolution" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>4</storyId>
+    <title>Evidence-Based Dispute Resolution</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-29</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/3-4-evidence-based-dispute-resolution.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employee</asA>
+    <iWant>dispute a transaction if I didn't receive my order</iWant>
+    <soThat>I can get a refund</soThat>
+    <tasks>
+      - Create Disputes Database Schema
+      - Implement File Upload Infrastructure (@vercel/blob)
+      - Create Dispute Form UI
+      - Implement Dispute Creation Server Action
+      - Implement Dispute Notification Emails
+      - Implement Merchant Response UI (Placeholder)
+      - Implement Admin Dispute Resolution UI (Placeholder)
+      - Implement Dispute Resolution Logic
+      - Implement Paystack Refund Function
+      - Add Fraud Detection
+      - Update Transaction Detail Page
+      - Add Authorization and Validation
+      - Write Unit Tests
+      - Integration Testing
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given I have an active escrow hold, When I click "Report Issue", Then I am prompted to upload evidence
+    2. And The escrow state changes to DISPUTED
+    3. And The merchant is notified and can respond with counter-evidence
+    4. And An admin review is triggered
+    5. And I receive an email: "Your dispute has been submitted"
+    6. And The merchant cannot receive payment until the dispute is resolved
+    7. And If resolved in my favor, the escrow is REFUNDED; if in merchant's favor, it's RELEASED
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics &amp; Stories</title>
+        <section>Story 3.4: Evidence-Based Dispute Resolution</section>
+        <snippet>Defines the dispute flow, acceptance criteria, and technical notes including the need for a disputes table and file upload.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>File Storage</section>
+        <snippet>Use Vercel Blob for file storage. Files should be validated for type and size. Use unique filenames.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>UX Design Specification</title>
+        <section>Forms</section>
+        <snippet>Specifications for file upload drag-and-drop zone and description textarea with character counters.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <item>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>disputes</symbol>
+        <reason>Need to add new table for storing dispute records and evidence URLs.</reason>
+      </item>
+      <item>
+        <path>src/lib/escrow-state-machine.ts</path>
+        <kind>utility</kind>
+        <symbol>transitionState</symbol>
+        <reason>Core logic for transitioning escrow state (HELD -> DISPUTED, DISPUTED -> REFUNDED/RELEASED).</reason>
+      </item>
+      <item>
+        <path>src/server/actions/payments.ts</path>
+        <kind>server-action</kind>
+        <symbol>releaseFundsToMerchant</symbol>
+        <reason>Reuse this action for resolving disputes in merchant's favor.</reason>
+      </item>
+      <item>
+        <path>src/server/actions/notifications.ts</path>
+        <kind>server-action</kind>
+        <symbol>sendDisputeNotifications</symbol>
+        <reason>New function needed to handle dispute-related emails.</reason>
+      </item>
+    </code>
+    <dependencies>
+      <dep>@vercel/blob (NEW)</dep>
+      <dep>resend</dep>
+      <dep>drizzle-orm</dep>
+      <dep>zod</dep>
+      <dep>lucide-react</dep>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Must use Vercel Blob for file storage
+    - Max 3 files per dispute, 5MB limit per file
+    - Admin and Merchant portals are deferred (placeholders only)
+    - Paystack Refunds take 1-7 days (manage user expectations)
+    - Privacy: Do not share evidence URLs between employee and merchant
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>createDispute</name>
+      <kind>Server Action</kind>
+      <signature>createDispute(escrowHoldId: string, description: string, evidenceUrls: string[]): Promise&lt;Result&gt;</signature>
+    </interface>
+    <interface>
+      <name>resolveDispute</name>
+      <kind>Server Action</kind>
+      <signature>resolveDispute(disputeId: string, resolution: 'EMPLOYEE_FAVOR' | 'MERCHANT_FAVOR', notes: string): Promise&lt;Result&gt;</signature>
+    </interface>
+    <interface>
+      <name>refundTransaction</name>
+      <kind>Server Action</kind>
+      <signature>refundTransaction(transactionId: string, amount?: number): Promise&lt;Result&gt;</signature>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest for unit tests. Aim for 100% coverage on business logic (state transitions, payment triggers). Mock external APIs (Paystack, Resend, Vercel Blob).
+    </standards>
+    <locations>
+      src/server/actions/__tests__/disputes.test.ts
+      src/server/actions/__tests__/payments.test.ts
+    </locations>
+    <ideas>
+      - Test HELD -> DISPUTED transition
+      - Test blocking of invalid transitions (e.g. RELEASED -> DISPUTED)
+      - Test file upload validation (size, type)
+      - Test resolution logic: EMPLOYEE_FAVOR triggers refund
+      - Test resolution logic: MERCHANT_FAVOR triggers transfer
+    </ideas>
+  </tests>
+</story-context>

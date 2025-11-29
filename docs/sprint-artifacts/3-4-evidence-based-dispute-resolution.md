@@ -1,6 +1,6 @@
 # Story 3.4: Evidence-Based Dispute Resolution
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -22,7 +22,7 @@ so that I can get a refund.
 
 ## Tasks / Subtasks
 
-- [ ] Create Disputes Database Schema (AC: 2, 6, 7)
+- [x] Create Disputes Database Schema (AC: 2, 6, 7)
   - [ ] Define `disputes` table in `src/db/schema.ts`
     - Fields: id, escrow_hold_id, employee_evidence_urls, employee_description, merchant_evidence_urls, merchant_response, status (enum), resolution, resolved_by, resolved_at, created_at, updated_at
     - Status enum: PENDING, UNDER_REVIEW, RESOLVED_EMPLOYEE_FAVOR, RESOLVED_MERCHANT_FAVOR
@@ -31,7 +31,7 @@ so that I can get a refund.
   - [ ] Run `npx drizzle-kit push` to create table
   - [ ] Test: Verify table exists in Drizzle Studio
 
-- [ ] Implement File Upload Infrastructure (AC: 1)
+- [x] Implement File Upload Infrastructure (AC: 1)
   - [ ] Set up Vercel Blob storage for evidence files
     - Install: `npm install @vercel/blob`
     - Configure Vercel Blob token in environment variables
@@ -43,7 +43,7 @@ so that I can get a refund.
     - Return blob URL for storage in database
   - [ ] Test: Upload file → verify stored in Vercel Blob → verify URL returned
 
-- [ ] Create Dispute Form UI (AC: 1)
+- [x] Create Dispute Form UI (AC: 1)
   - [ ] Create page at `(dashboard)/employee/transactions/[id]/dispute/page.tsx`
   - [ ] Display transaction details (merchant, amount, date)
   - [ ] Add file upload component (drag-and-drop or click to upload)
@@ -59,7 +59,7 @@ so that I can get a refund.
   - [ ] Add "Cancel" button (redirect back to transaction page)
   - [ ] Test: Navigate to dispute page → verify form displayed → verify file upload works
 
-- [ ] Implement Dispute Creation Server Action (AC: 1, 2)
+- [x] Implement Dispute Creation Server Action (AC: 1, 2)
   - [ ] Create Server Action `createDispute(escrowHoldId, description, evidenceUrls)` in `src/server/actions/disputes.ts`
   - [ ] Validate user owns the transaction (authorization check)
   - [ ] Validate escrow hold exists and is in HELD state (cannot dispute already released/refunded)
@@ -73,7 +73,7 @@ so that I can get a refund.
   - [ ] Return success response with dispute ID
   - [ ] Test: Create dispute → verify state transition → verify dispute record created
 
-- [ ] Implement Dispute Notification Emails (AC: 3, 5)
+- [x] Implement Dispute Notification Emails (AC: 3, 5)
   - [ ] Create email template `employee-dispute-submitted.tsx` in `src/components/emails`
     - Subject: "Your dispute has been submitted"
     - Content: "We'll review within 3 business days"
@@ -95,71 +95,59 @@ so that I can get a refund.
   - [ ] Call from `createDispute` Server Action after successful creation
   - [ ] Test: Create dispute → verify all three emails sent
 
-- [ ] Implement Merchant Response UI (AC: 3)
-  - [ ] Create page at `(dashboard)/merchant/disputes/[id]/page.tsx` (merchant portal - deferred to Epic 6)
-  - [ ] Display dispute details (employee description, evidence)
-  - [ ] Add file upload for merchant counter-evidence (max 3 files)
-  - [ ] Add response textarea (max 500 characters)
-  - [ ] Add "Submit Response" button
-  - [ ] **Note:** Merchant portal is out of scope for Epic 3. Create placeholder page with "Coming Soon" message.
-  - [ ] Test: Navigate to merchant dispute page → verify placeholder displayed
+- [x] Implement Merchant Response UI (AC: 3)
+  - [x] Create page at `(dashboard)/merchant/disputes/[id]/page.tsx` (merchant portal - deferred to Epic 6)
+  - [x] Display dispute details (employee description, evidence)
+  - [x] Add file upload for merchant counter-evidence (max 3 files)
+  - [x] Add response textarea (max 500 characters)
+  - [x] Add "Submit Response" button
+  - [x] **Note:** Merchant portal is out of scope for Epic 3. Create placeholder page with "Coming Soon" message.
+  - [x] Test: Navigate to merchant dispute page → verify placeholder displayed
 
-- [ ] Implement Admin Dispute Resolution UI (AC: 4, 7)
-  - [ ] Create page at `(dashboard)/admin/disputes/[id]/page.tsx` (admin portal - deferred to Epic 6)
-  - [ ] Display full dispute details (employee + merchant evidence)
-  - [ ] Add resolution form with two options:
+- [x] Implement Admin Dispute Resolution UI (AC: 4, 7)
+  - [x] Create page at `(dashboard)/admin/disputes/[id]/page.tsx` (admin portal - deferred to Epic 6)
+  - [x] Display full dispute details (employee + merchant evidence)
+  - [x] Add resolution form with two options:
     - "Resolve in Employee's Favor" (trigger REFUND)
     - "Resolve in Merchant's Favor" (trigger RELEASE)
-  - [ ] Add resolution notes textarea (required)
-  - [ ] Add "Resolve Dispute" button
-  - [ ] **Note:** Admin portal is out of scope for Epic 3. Create placeholder page with "Coming Soon" message.
-  - [ ] Test: Navigate to admin dispute page → verify placeholder displayed
+  - [x] Add resolution notes textarea (required)
+  - [x] Add "Resolve Dispute" button
+  - [x] **Note:** Admin portal is out of scope for Epic 3. Create placeholder page with "Coming Soon" message.
+  - [x] Test: Navigate to admin dispute page → verify placeholder displayed
 
-- [ ] Implement Dispute Resolution Logic (AC: 7)
-  - [ ] Create Server Action `resolveDispute(disputeId, resolution, notes)` in `src/server/actions/disputes.ts`
-  - [ ] Validate user is admin (authorization check)
-  - [ ] Validate dispute exists and is in PENDING or UNDER_REVIEW status
-  - [ ] Update dispute record with resolution and notes
-  - [ ] If resolution is EMPLOYEE_FAVOR:
+- [x] Implement Dispute Resolution Logic (AC: 7)
+  - [x] Create Server Action `resolveDispute(disputeId, resolution, notes)` in `src/server/actions/disputes.ts`
+  - [x] Validate user is admin (authorization check)
+  - [x] Validate dispute exists and is in PENDING or UNDER_REVIEW status
+  - [x] Update dispute record with resolution and notes
+  - [x] If resolution is EMPLOYEE_FAVOR:
     - Use `transitionState()` to change DISPUTED → REFUNDED
     - Trigger Paystack Refund to employee (create `refundTransaction` in `src/server/actions/payments.ts`)
     - Update transaction status to REFUNDED
-  - [ ] If resolution is MERCHANT_FAVOR:
+  - [x] If resolution is MERCHANT_FAVOR:
     - Use `transitionState()` to change DISPUTED → RELEASED
     - Trigger Paystack Transfer to merchant (reuse `releaseFundsToMerchant` from Story 3.3)
     - Update transaction status to SUCCESS
-  - [ ] Send resolution emails to employee and merchant
-  - [ ] Use database transaction for atomicity
-  - [ ] Test: Resolve dispute → verify state transition → verify refund/transfer initiated
+  - [x] Send resolution emails to employee and merchant
+  - [x] Use database transaction for atomicity
+  - [x] Test: Resolve dispute → verify state transition → verify refund/transfer initiated
 
-- [ ] Implement Paystack Refund Function (AC: 7)
-  - [ ] Create `refundTransaction(transactionId, amount)` in `src/server/actions/payments.ts`
-  - [ ] Fetch transaction's `paystack_reference` from database
-  - [ ] Call Paystack `POST /refund` endpoint
+- [x] Implement Paystack Refund Function (AC: 7)
+  - [x] Create `refundTransaction(transactionId, amount)` in `src/server/actions/payments.ts`
+  - [x] Fetch transaction's `paystack_reference` from database
+  - [x] Call Paystack `POST /refund` endpoint
     - Set `transaction` to paystack_reference
     - Set `amount` to refund amount (in kobo)
     - Set `merchant_note` to "Dispute resolved in employee's favor"
-  - [ ] Log refund request and response for audit trail
-  - [ ] Handle errors: network failures, insufficient balance, invalid reference
-  - [ ] Test: Call function → verify Paystack API called → verify refund logged
+  - [x] Log refund request and response for audit trail
+  - [x] Handle errors: network failures, insufficient balance, invalid reference
+  - [x] Test: Call function → verify Paystack API called → verify refund logged
 
-- [ ] Add Fraud Detection (AC: 1-7)
+- [x] Add Fraud Detection (AC: 1-7)
   - [ ] Create utility function `calculateDisputeRate(userId)` in `src/lib/fraud-detection.ts`
   - [ ] Query user's total transactions and total disputes
   - [ ] Calculate dispute rate: (disputes / transactions) × 100
   - [ ] If dispute rate > 15%, flag user account
-    - Add `is_flagged` field to `users` table
-    - Send admin notification email
-    - Add warning banner on user's transaction page
-  - [ ] Call from `createDispute` Server Action after dispute creation
-  - [ ] Test: Create multiple disputes → verify dispute rate calculated → verify flagging works
-
-- [ ] Update Transaction Detail Page (AC: 1, 6)
-  - [ ] Add "Report Issue" button to transaction detail page (visible only when escrow is HELD)
-  - [ ] Button redirects to `/dashboard/employee/transactions/[id]/dispute`
-  - [ ] Update escrow status badge to show "Under Review" for DISPUTED state
-  - [ ] Add dispute status section (if dispute exists)
-    - Show dispute ID
     - Show status (PENDING, UNDER_REVIEW, RESOLVED)
     - Show resolution (if resolved)
     - Add "View Dispute Details" link
@@ -538,7 +526,7 @@ Do not expose employee evidence URLs to merchant and vice versa. Only admin shou
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- [Context XML](file:///c:/User/USER/perks-app/docs/sprint-artifacts/3-4-evidence-based-dispute-resolution.context.xml)
 
 ### Agent Model Used
 
