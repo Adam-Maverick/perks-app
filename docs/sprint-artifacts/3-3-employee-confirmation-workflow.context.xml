@@ -1,0 +1,145 @@
+<story-context id="3-3-employee-confirmation-workflow" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>3.3</storyId>
+    <title>Employee Confirmation Workflow</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-27T12:58:00+01:00</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/3-3-employee-confirmation-workflow.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employee</asA>
+    <iWant>to confirm delivery of my purchase</iWant>
+    <soThat>the merchant receives their payment</soThat>
+    <tasks>
+- [ ] Create Transaction Detail Page (AC: 1)
+- [ ] Implement Confirmation Modal (AC: 2)
+- [ ] Implement Escrow Release Logic (AC: 3)
+- [ ] Implement Paystack Transfer to Merchant (AC: 4)
+- [ ] Implement Confirmation Emails (AC: 5)
+- [ ] Update Transaction Status Display (AC: 6)
+- [ ] Implement Dispute Redirect (AC: 7)
+- [ ] Add Security and Validation (AC: 1-7)
+- [ ] Write Unit Tests (AC: 1-7)
+- [ ] Integration Testing (AC: 1-7)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** I have an active escrow hold (state: HELD)
+   **When** I navigate to `/dashboard/employee/transactions/[id]`
+   **Then** I see a "Confirm Delivery" button
+2. **And** Clicking the button shows a confirmation modal: "Did you receive your order as expected?"
+3. **And** Selecting "Yes" releases the escrow (state: HELD → RELEASED)
+4. **And** The merchant receives payment within 24 hours
+5. **And** I receive a confirmation email: "Thank you! Merchant has been paid."
+6. **And** The transaction shows "Completed" status
+7. **And** If I select "No", I am redirected to the dispute flow (Story 3.4)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 3.3: Employee Confirmation Workflow</section>
+        <snippet>Employee confirmation workflow (app/QR) to release funds. The merchant receives payment within 24 hours. Includes confirmation emails and dispute redirection.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Escrow Protection</section>
+        <snippet>Paystack (Collections + Transfers for Escrow). Funds held in Platform Paystack Balance. Transfers release funds to merchant after confirmation/auto-release.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>UX Design Specification</title>
+        <section>Flow 1: The "Trust" Moment</section>
+        <snippet>User clicks "Confirm Delivery" -> Funds released to merchant. "Trust Shield" animation appears. Modal with "Yes, release payment" and "No, report issue" options.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <item>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>escrowHolds</symbol>
+        <lines>231-241</lines>
+        <reason>Defines the escrow_holds table and state enum (HELD, RELEASED, etc.) required for the confirmation logic.</reason>
+      </item>
+      <item>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>transactions</symbol>
+        <lines>91-108</lines>
+        <reason>Defines the transactions table which links to escrow holds and users.</reason>
+      </item>
+      <item>
+        <path>src/lib/escrow-state-machine.ts</path>
+        <kind>module</kind>
+        <symbol>transitionState</symbol>
+        <lines>40-105</lines>
+        <reason>Core state machine logic to transition escrow from HELD to RELEASED with validation and audit logging.</reason>
+      </item>
+      <item>
+        <path>src/server/actions/__tests__/payments.test.ts</path>
+        <kind>test</kind>
+        <symbol>createTransferRecipient</symbol>
+        <lines>239-343</lines>
+        <reason>Reference for Paystack transfer recipient creation logic (implementation file appears missing).</reason>
+      </item>
+    </code>
+
+    <dependencies>
+      <dep>resend (Email sending)</dep>
+      <dep>@clerk/nextjs (Authentication)</dep>
+      <dep>zod (Validation)</dep>
+      <dep>drizzle-orm (Database)</dep>
+      <dep>paystack-sdk (or fetch for Paystack API)</dep>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>Architecture</type>
+      <description>Use Server Actions for all mutations. Validate inputs with Zod. Return standardized ActionResponse.</description>
+    </constraint>
+    <constraint>
+      <type>Security</type>
+      <description>Verify user ownership of transaction. Check escrow state before release. Use database transactions for atomicity.</description>
+    </constraint>
+    <constraint>
+      <type>Missing Code</type>
+      <description>CRITICAL: src/server/actions/payments.ts seems to be missing. It should contain `createTransferRecipient` and Paystack transfer logic. Re-implement or locate this file.</description>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>transitionState</name>
+      <kind>function</kind>
+      <signature>transitionState(escrowHoldId: string, toState: EscrowState, actorId: string, reason: string): Promise&lt;TransitionResult&gt;</signature>
+      <path>src/lib/escrow-state-machine.ts</path>
+    </interface>
+    <interface>
+      <name>Paystack Transfer API</name>
+      <kind>REST</kind>
+      <signature>POST /transfer { source: "balance", amount: number, recipient: string, reference: string }</signature>
+      <path>External (Paystack)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Vitest for unit/integration tests. Mock external APIs (Paystack, Resend). 100% coverage for financial logic.</standards>
+    <locations>src/server/actions/__tests__/</locations>
+    <ideas>
+      - Test confirmDelivery with valid HELD escrow
+      - Test double-confirmation (idempotency)
+      - Test confirmation by wrong user (security)
+      - Test Paystack transfer failure (rollback)
+      - Test email sending failure (graceful degradation)
+    </ideas>
+  </tests>
+</story-context>

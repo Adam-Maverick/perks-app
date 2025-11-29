@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { transactions, deals, merchants, users } from "@/db/schema";
+import { transactions, deals, merchants, users, escrowHolds } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { ActionResponse } from "@/types";
 import { z } from "zod";
@@ -285,6 +285,130 @@ export async function createTransferRecipient(
         return {
             success: false,
             error: "An unexpected error occurred.",
+        };
+    }
+}
+
+const releaseFundsToMerchantSchema = z.object({
+    escrowHoldId: z.string().uuid("Invalid escrow hold ID"),
+});
+
+/**
+ * Release funds to merchant via Paystack Transfer
+ * AC#4: Transfer funds from Platform Balance to Merchant Account
+ */
+export async function releaseFundsToMerchant(
+    escrowHoldId: string
+): Promise<ActionResponse<{ transferCode: string; reference: string }>> {
+    // 0. Input Validation
+    try {
+        releaseFundsToMerchantSchema.parse({ escrowHoldId });
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return {
+                success: false,
+                error: error.issues[0]?.message || "Invalid input",
+            };
+        }
+    }
+
+    try {
+        // 1. Fetch escrow hold and related data
+        const hold = await db.query.escrowHolds.findFirst({
+            where: eq(escrowHolds.id, escrowHoldId),
+            with: {
+                transaction: {
+                    with: {
+                        merchant: true,
+                    },
+                },
+            },
+        });
+
+        if (!hold || !hold.transaction || !hold.transaction.merchant) {
+            return {
+                success: false,
+                error: "Escrow hold or merchant details not found.",
+            };
+        }
+
+        const merchant = hold.transaction.merchant;
+        const amount = hold.amount; // Amount in kobo
+
+        // 2. Ensure merchant has a recipient code
+        let recipientCode = merchant.paystackRecipientCode;
+
+        if (!recipientCode) {
+            // Attempt to create one on the fly
+            const recipientResult = await createTransferRecipient(merchant.id);
+            if (!recipientResult.success || !recipientResult.data) {
+                return {
+                    success: false,
+                    error: recipientResult.error || "Failed to create transfer recipient for merchant.",
+                };
+            }
+            recipientCode = recipientResult.data.recipientCode;
+        }
+
+        // 3. Initiate Transfer
+        // Idempotency: Use escrowHoldId as the reference
+        const transferPayload = {
+            source: "balance",
+            amount: amount,
+            recipient: recipientCode,
+            reason: `Escrow release for transaction ${hold.transaction.paystackReference || hold.transactionId}`,
+            reference: escrowHoldId,
+        };
+
+        const paystackResponse = await fetch(`${PAYSTACK_API_URL}/transfer`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${PAYSTACK_SECRET_KEY}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(transferPayload),
+        });
+
+        if (!paystackResponse.ok) {
+            const errorData = await paystackResponse.json();
+            console.error("Paystack Transfer API error:", errorData);
+
+            // Handle specific error: Insufficient balance
+            if (errorData.message?.includes("balance")) {
+                return {
+                    success: false,
+                    error: "Transfer failed: Insufficient platform balance. Admin notified.",
+                };
+            }
+
+            return {
+                success: false,
+                error: `Transfer failed: ${errorData.message || "Unknown error"}`,
+            };
+        }
+
+        const paystackData = await paystackResponse.json();
+
+        if (!paystackData.status) {
+            return {
+                success: false,
+                error: `Transfer failed: ${paystackData.message}`,
+            };
+        }
+
+        return {
+            success: true,
+            data: {
+                transferCode: paystackData.data.transfer_code,
+                reference: paystackData.data.reference,
+            },
+        };
+
+    } catch (error) {
+        console.error("Error releasing funds:", error);
+        return {
+            success: false,
+            error: "An unexpected error occurred during fund transfer.",
         };
     }
 }
