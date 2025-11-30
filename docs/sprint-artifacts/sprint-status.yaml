@@ -56,7 +56,7 @@ development_status:
   3-1-escrow-state-machine-core-logic: done
   3-2-paystack-split-payment-integration: done
   3-3-employee-confirmation-workflow: done
-  3-4-evidence-based-dispute-resolution: in-progress
+  3-4-evidence-based-dispute-resolution: done
   3-5-auto-release-scheduler-14-day-timer: backlog
   epic-3-retrospective: optional
   
