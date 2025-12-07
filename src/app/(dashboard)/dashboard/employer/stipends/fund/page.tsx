@@ -12,7 +12,7 @@ import { getOrganizationEmployees, initiateFundingPayment } from '@/server/actio
 // Validation schema (Zod 4 compatible)
 const fundingSchema = z.object({
     amountPerEmployee: z
-        .coerce.number()
+        .number()
         .min(5000, 'Minimum amount is ₦5,000')
         .max(50000, 'Maximum amount is ₦50,000'),
 });
