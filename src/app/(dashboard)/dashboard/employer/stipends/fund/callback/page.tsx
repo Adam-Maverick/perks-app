@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { verifyAndFundStipends } from '@/server/actions/stipends';
 
-export default function FundingCallbackPage() {
+function CallbackContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
@@ -124,3 +124,21 @@ export default function FundingCallbackPage() {
         </div>
     );
 }
+
+export default function FundingCallbackPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <Card className="w-full max-w-md">
+                    <CardContent className="pt-8 text-center">
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#2563EB] mx-auto mb-4"></div>
+                        <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+                    </CardContent>
+                </Card>
+            </div>
+        }>
+            <CallbackContent />
+        </Suspense>
+    );
+}
+
