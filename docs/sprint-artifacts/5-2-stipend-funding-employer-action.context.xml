@@ -1,0 +1,183 @@
+<story-context id="5-2-stipend-funding-employer-action" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5.2</storyId>
+    <title>Stipend Funding (Employer Action)</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/5-2-stipend-funding-employer-action.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employer admin</asA>
+    <iWant>fund employee stipend wallets</iWant>
+    <soThat>my employees can spend on the platform</soThat>
+    <tasks>
+      <task id="1" title="Employer Funding Page UI" acs="1,2,3,8">
+        <subtask>Create /dashboard/employer/stipends/fund/page.tsx with employee selection interface</subtask>
+        <subtask>Implement employee list with checkboxes (fetch from organization's employees)</subtask>
+        <subtask>Add CSV upload option for bulk employee selection</subtask>
+        <subtask>Create funding amount input with Zod validation (min: 5000, max: 50000)</subtask>
+        <subtask>Build preview summary component showing total calculation</subtask>
+      </task>
+      <task id="2" title="Paystack Integration" acs="4">
+        <subtask>Create Server Action initiateFundingPayment(employeeIds: string[], amountPerEmployee: number)</subtask>
+        <subtask>Integrate Paystack Standard Checkout for the total payment amount</subtask>
+        <subtask>Handle Paystack callback/redirect after payment</subtask>
+      </task>
+      <task id="3" title="Wallet Funding Logic" acs="5,6">
+        <subtask>Create Server Action fundStipends(employeeIds: string[], amountPerEmployee: number, paystackReference: string)</subtask>
+        <subtask>Implement batch insert into wallet_transactions with type DEPOSIT</subtask>
+        <subtask>Update wallet balances atomically using existing updateWalletBalance helper</subtask>
+        <subtask>Ensure idempotency using Paystack reference as reference_id</subtask>
+      </task>
+      <task id="4" title="Email Notification" acs="7">
+        <subtask>Create StipendFundedEmail template in src/components/emails/</subtask>
+        <subtask>Send batch notifications via Resend after successful funding</subtask>
+      </task>
+      <task id="5" title="Testing">
+        <subtask>Test: Employee selection (individual and bulk CSV)</subtask>
+        <subtask>Test: Amount validation (below min, above max, valid)</subtask>
+        <subtask>Test: Paystack payment flow (mock)</subtask>
+        <subtask>Test: Wallet balance updates correctly after funding</subtask>
+        <subtask>Test: Email notifications sent to correct employees</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Employee Selection UI: Employer admin can select employees (individual checkboxes or bulk via CSV upload) at /dashboard/employer/stipends/fund</criterion>
+    <criterion id="2">Funding Amount Input: Employer can enter funding amount per employee within valid range (₦5,000 - ₦50,000)</criterion>
+    <criterion id="3">Preview Summary: Before payment, employer sees a preview: "Fund X employees × ₦Y = ₦Z total"</criterion>
+    <criterion id="4">Paystack Payment: Employer can pay the total amount via Paystack one-time payment</criterion>
+    <criterion id="5">Wallet Credit: After successful payment, all selected employee wallets are credited with the specified amount</criterion>
+    <criterion id="6">Transaction Recording: Each credit is recorded in wallet_transactions with type DEPOSIT and status COMPLETED</criterion>
+    <criterion id="7">Email Notifications: Employees receive email notifications: "Your ₦X stipend has arrived!" via Resend</criterion>
+    <criterion id="8">Input Validation: Amount must be within limits (₦5,000 - ₦50,000); at least one employee must be selected</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/epics.md" title="Epic Breakdown" section="Story 5.2: Stipend Funding">
+        Source of story requirements. Defines employee selection (individual/CSV), funding amount limits (₦5k-₦50k), Paystack payment, wallet credits, email notifications.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture" section="Implementation Patterns">
+        Server Actions pattern with Zod validation, ActionResponse type. Paystack webhook handling at /api/webhooks/paystack. TanStack Query for real-time updates.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture" section="Split Payment Architecture (Story 5.4)">
+        ADR-005: Reservation Pattern for split payments. Transaction status: PENDING, COMPLETED, FAILED. Reference for future atomicity requirements.
+      </doc>
+      <doc path="CONTRIBUTING.md" title="Contributing Guidelines" section="Testing Guidelines">
+        Vitest globals enabled - do NOT import describe/it/expect. Use valid UUIDs for test data. Server Actions must verify auth() and prevent IDOR.
+      </doc>
+      <doc path="docs/ux-design.md" title="UX Design Specification" section="Visual Foundation &amp; Components">
+        Color palette: Electric Royal Blue (#2563EB) for primary/trust, Vibrant Coral (#FA7921) for CTAs and highlights. 
+        Typography: Outfit for headings, Inter for body. Atomic Design: Buttons (Primary, Secondary, Ghost), Wallet Widget component pattern.
+        User Flow "Benefit Moment": Push notification → Wallet Card shows updated balance with trend indicator.
+      </doc>
+    </docs>
+    
+    <code>
+      <file path="src/server/procedures/wallet.ts" kind="procedure" lines="1-183" reason="Core wallet operations for Story 5.2. REUSE these functions:">
+        <symbol name="createWallet" signature="createWallet(userId: string): Promise&lt;Wallet&gt;" reason="Create wallet for user if doesn't exist"/>
+        <symbol name="getOrCreateWallet" signature="getOrCreateWallet(userId: string): Promise&lt;Wallet&gt;" reason="Ensure employee has wallet before funding"/>
+        <symbol name="updateWalletBalance" signature="updateWalletBalance(walletId: string, delta: number): Promise&lt;Wallet&gt;" reason="Atomic balance update - use for crediting wallets"/>
+        <symbol name="getWalletByUserId" signature="getWalletByUserId(userId: string): Promise&lt;Wallet | null&gt;" reason="Lookup wallet by user ID"/>
+      </file>
+      
+      <file path="src/db/schema.ts" kind="schema" lines="78-143" reason="Wallet and transaction schemas">
+        <symbol name="wallets" reason="Wallet table with userId (unique), balance, currency"/>
+        <symbol name="walletTransactions" reason="Transaction table with walletId, type, amount, description, referenceId (unique for idempotency), status"/>
+        <symbol name="walletTransactionTypeEnum" reason="Types: DEPOSIT, SPEND, REFUND, RESERVED, RELEASED"/>
+        <symbol name="walletTransactionStatusEnum" reason="Status: PENDING, COMPLETED, FAILED"/>
+      </file>
+      
+      <file path="src/db/schema.ts" kind="schema" lines="41-53" reason="Employees schema for fetching organization employees">
+        <symbol name="employees" reason="Employee table with userId, organizationId, email, status. Use to list employees for selection"/>
+      </file>
+      
+      <file path="src/server/actions/payments.ts" kind="action" lines="1-175" reason="Reference Paystack integration patterns">
+        <symbol name="createEscrowTransaction" signature="createEscrowTransaction(dealId, amount, merchantId): Promise&lt;ActionResponse&gt;" reason="Pattern for Paystack Standard Checkout - adapt for bulk funding"/>
+        <symbol name="PAYSTACK_API_URL" reason="Paystack API base URL"/>
+      </file>
+      
+      <file path="src/app/api/webhooks/paystack/route.ts" kind="webhook" lines="1-175" reason="Paystack webhook handler pattern">
+        <symbol name="handleChargeSuccess" reason="Handler for charge.success event - adapt for funding flow"/>
+        <symbol name="signature verification" reason="HMAC-SHA512 signature validation pattern"/>
+      </file>
+      
+      <file path="src/components/emails/WelcomeEmail.tsx" kind="email-template" lines="1-44" reason="Email template pattern using React Email">
+        <symbol name="WelcomeEmail" reason="Reference for StipendFundedEmail structure"/>
+      </file>
+      
+      <file path="src/app/(dashboard)/dashboard/employer" kind="directory" reason="Existing employer dashboard structure">
+        <note>Contains /roster and /tax subdirectories. Create /stipends/fund for new funding page.</note>
+      </file>
+    </code>
+    
+    <dependencies>
+      <ecosystem name="node">
+        <package name="@clerk/nextjs" version="^6.35.4" reason="Authentication - use auth() to get userId and orgId"/>
+        <package name="drizzle-orm" version="^0.44.7" reason="Database queries and transactions"/>
+        <package name="zod" version="^4.1.12" reason="Input validation for amounts and employee IDs"/>
+        <package name="resend" version="^6.5.2" reason="Email delivery for stipend notifications"/>
+        <package name="@react-email/components" version="^1.0.1" reason="Email template components"/>
+        <package name="sonner" version="^2.0.7" reason="Toast notifications for UI feedback"/>
+        <package name="react-hook-form" version="^7.68.0" reason="Form state management"/>
+        <package name="@hookform/resolvers" version="^5.2.2" reason="Zod resolver for react-hook-form"/>
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint category="architecture">Server Actions MUST use Zod validation and return ActionResponse type { success: boolean, data?: T, error?: string }</constraint>
+    <constraint category="architecture">All wallet balance updates MUST use atomic SQL operations (updateWalletBalance helper)</constraint>
+    <constraint category="architecture">Paystack webhook handlers MUST verify HMAC-SHA512 signature</constraint>
+    <constraint category="security">Every Server Action MUST verify auth() - employer must be admin of the organization</constraint>
+    <constraint category="security">Employer can only fund employees within their own organization (check organizationId)</constraint>
+    <constraint category="idempotency">Use Paystack reference as wallet_transactions.referenceId to prevent duplicate credits on webhook retries</constraint>
+    <constraint category="database">Use database transactions for batch operations - all wallet updates succeed or fail together</constraint>
+    <constraint category="amounts">Amount stored in kobo (minor units) - ₦5,000 = 500000 kobo, ₦50,000 = 5000000 kobo</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="ActionResponse" kind="type" path="src/types/index.ts">
+      <signature>type ActionResponse&lt;T&gt; = { success: boolean; data?: T; error?: string }</signature>
+    </interface>
+    <interface name="Paystack Initialize Transaction" kind="REST endpoint" path="external">
+      <signature>POST https://api.paystack.co/transaction/initialize</signature>
+      <note>Body: { email, amount (kobo), reference, callback_url }. Returns: { authorization_url, reference }</note>
+    </interface>
+    <interface name="Wallet Procedures" kind="module" path="src/server/procedures/wallet.ts">
+      <signature>getOrCreateWallet(userId: string): Promise&lt;Wallet&gt;</signature>
+      <signature>updateWalletBalance(walletId: string, delta: number): Promise&lt;Wallet&gt;</signature>
+    </interface>
+    <interface name="Employees Query" kind="drizzle query" path="src/db/schema.ts">
+      <signature>db.query.employees.findMany({ where: eq(employees.organizationId, orgId) })</signature>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Vitest with globals enabled (do NOT import describe/it/expect). Use valid UUIDs for IDs. Mock db, auth, and fetch. 
+      Test location: src/server/actions/__tests__/stipends.test.ts for server actions.
+      Follow patterns from payments.test.ts for Paystack mocking.
+    </standards>
+    <locations>
+      <location>src/server/actions/__tests__/</location>
+      <location>src/server/procedures/__tests__/</location>
+      <location>src/components/**/__tests__/</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2,3">Test employee selection UI - individual checkboxes, CSV upload parsing, preview calculation</idea>
+      <idea ac="4">Test Paystack checkout initialization with correct amount calculation (employees × amount)</idea>
+      <idea ac="5">Test wallet credit after successful payment - verify balance increased for all selected employees</idea>
+      <idea ac="6">Test wallet_transactions records created with DEPOSIT type and COMPLETED status</idea>
+      <idea ac="7">Test email notifications sent to all funded employees via Resend (batch)</idea>
+      <idea ac="8">Test validation: amount below 500000 kobo fails, above 5000000 kobo fails, empty employee list fails</idea>
+      <idea ac="*">Test idempotency: duplicate Paystack reference should not double-credit wallets</idea>
+      <idea ac="*">Test authorization: non-admin user cannot access funding, cannot fund employees from other org</idea>
+    </ideas>
+  </tests>
+</story-context>

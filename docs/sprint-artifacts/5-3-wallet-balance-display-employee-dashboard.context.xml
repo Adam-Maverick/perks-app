@@ -1,0 +1,143 @@
+<story-context id="5-3-wallet-balance-display-employee-dashboard" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5.3</storyId>
+    <title>Wallet Balance Display (Employee Dashboard)</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/5-3-wallet-balance-display-employee-dashboard.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employee</asA>
+    <iWant>see my current wallet balance</iWant>
+    <soThat>I know how much I can spend</soThat>
+    <tasks>
+- [ ] **Wallet Data Procedures** (AC: 1, 2)
+  - [ ] Update `src/server/procedures/wallet.ts` to include `getWalletStats(userId)` returning balance and monthly trend.
+  - [ ] Implement trend calculation logic (current month balance vs previous month ending balance).
+
+- [ ] **Wallet Balance Widget** (AC: 1, 2, 4, 6)
+  - [ ] Create `WalletWidget` component in `src/components/modules/wallet/`.
+  - [ ] Implement skeleton loading state.
+  - [ ] Apply Electric Royal Blue branding.
+  - [ ] Add navigation link to history page.
+
+- [ ] **Real-time Data Fetching** (AC: 3)
+  - [ ] Create custom hook `useWalletBalance` using TanStack Query.
+  - [ ] Implement `getWalletBalance` Server Action for client-side refetching.
+  - [ ] Integrate query invalidation on successful transactions.
+
+- [ ] **Low Balance Logic** (AC: 5)
+  - [ ] Implement conditional rendering for "Low Balance" prompt (&lt; ₦1,000).
+  - [ ] Add "Request Top-up" or "Contact Employer" action (optional/placeholder).
+
+- [ ] **Testing**
+  - [ ] Test: Widget renders correct balance.
+  - [ ] Test: Trend calculation accuracy.
+  - [ ] Test: Low balance alert appearance.
+  - [ ] Test: Navigation to history.
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Wallet Widget Display**: A prominent widget on the dashboard showing the current wallet balance formatted in Naira (e.g., "₦12,500").
+2. **Trend Indicator**: A visual indicator showing spending/funding trend (e.g., "+12% this month" or "Last funded 2 days ago").
+3. **Real-time Updates**: The balance updates automatically after a transaction without requiring a full page refresh.
+4. **Transaction History Link**: Clicking the widget navigates to the detailed transaction history page (`/dashboard/employee/wallet/history`).
+5. **Low Balance Alert**: If the balance is below ₦1,000, a prompt appears: "Ask your employer to top up your stipend".
+6. **Visual Design**: The widget uses the approved Electric Royal Blue (#2563EB) color theme.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Stipends - Product Requirements Document</title>
+        <section>Product Scope - MVP - Employee Portal</section>
+        <snippet>Savings dashboard (cumulative savings, monthly progress, category breakdown). Transaction history with digital receipt storage.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Stipends - Epic Breakdown</title>
+        <section>Story 5.3: Wallet Balance Display (Employee Dashboard)</section>
+        <snippet>I want to see my current wallet balance, So that I know how much I can spend. Widget shows trend indicator, updates in real-time, low balance alert.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Implementation Patterns - 2. TanStack Query for Data Fetching</section>
+        <snippet>Client-side data fetching (e.g., live wallet balance) MUST use TanStack Query. Create custom hooks in `src/hooks/queries`.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>Stipends UX Design Specification</title>
+        <section>Component Library - Molecules</section>
+        <snippet>Wallet Widget: Balance + Trend + Quick Actions. Electric Royal Blue (#2563EB) for primary navigation and wallet balance.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <item>
+        <path>src/server/procedures/wallet.ts</path>
+        <kind>procedure</kind>
+        <symbol>getWalletByUserId, getWalletBalance</symbol>
+        <lines>62-88</lines>
+        <reason>Core wallet retrieval logic. Story 5.3 should extend this or use it as base for `getWalletStats`.</reason>
+      </item>
+      <item>
+        <path>src/server/procedures/__tests__/wallet.test.ts</path>
+        <kind>test</kind>
+        <symbol>Wallet Tests</symbol>
+        <lines>1-end</lines>
+        <reason>Existing tests for wallet logic. New trend calculation logic should be tested here.</reason>
+      </item>
+    </code>
+    <dependencies>
+      <package name="@tanstack/react-query" version="^5.90.12" />
+      <package name="lucide-react" version="^0.555.0" />
+      <package name="framer-motion" version="^12.23.25" />
+      <package name="date-fns" version="^4.1.0" />
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - **Data Fetching**: Use **TanStack Query** for client-side balance management to ensure real-time responsiveness.
+    - **Initial State**: Balance should be pre-fetched on the server (React Server Component) and dehydrated to the client or passed as initial data.
+    - **Trend Logic**: Trend calculated comparing current balance vs start of month balance.
+    - **Styling**: `Electric Royal Blue (#2563EB)` primary color.
+    - **UI Consistency**: Match dashboard design language.
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Wallet</name>
+      <kind>Type</kind>
+      <signature>export type Wallet = typeof wallets.$inferSelect;</signature>
+      <path>src/server/procedures/wallet.ts</path>
+    </interface>
+     <interface>
+      <name>getWalletBalance</name>
+      <kind>Function</kind>
+      <signature>export async function getWalletBalance(userId: string): Promise&lt;number&gt;</signature>
+      <path>src/server/procedures/wallet.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest for unit tests. Mock database calls using standard patterns (drizzle-orm mock or dependency injection if established). Use Testing Library for component tests (`WalletWidget.test.tsx`).
+    </standards>
+    <locations>
+      src/server/procedures/__tests__/
+      src/components/modules/wallet/__tests__/
+    </locations>
+    <ideas>
+      - Test `getWalletStats` returns correct balance and trend percentage.
+      - Test trend calculation handling first month (no previous history).
+      - Test `WalletWidget` displays loading skeleton.
+      - Test `WalletWidget` renders balance formatted in Naira.
+      - Test low balance alert rendering &lt; 1000.
+    </ideas>
+  </tests>
+</story-context>

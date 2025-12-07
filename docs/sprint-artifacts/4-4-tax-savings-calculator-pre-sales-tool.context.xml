@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="4-4-tax-savings-calculator-pre-sales-tool" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4</storyId>
+    <title>Tax Savings Calculator (Pre-Sales Tool)</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/4-4-tax-savings-calculator-pre-sales-tool.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>prospective employer</asA>
+    <iWant>calculate potential tax savings before signing up</iWant>
+    <soThat>I can make an informed decision about adopting the platform</soThat>
+    <tasks>
+      <task id="1" name="Public Page Route Setup">
+        <subtask>Create /tax-calculator page as public route (outside (dashboard))</subtask>
+        <subtask>Create page at src/app/tax-calculator/page.tsx</subtask>
+        <subtask>Verify page loads without authentication (no middleware protection)</subtask>
+      </task>
+      <task id="2" name="Calculator UI Component">
+        <subtask>Create TaxSavingsCalculator component in src/components/modules/tax</subtask>
+        <subtask>Implement Number of Employees input (range: 10-10,000)</subtask>
+        <subtask>Implement Average Stipend input with ₦ prefix (range: ₦5,000-₦50,000)</subtask>
+        <subtask>Use sliders with text input for precise control</subtask>
+        <subtask>Add input validation (min/max bounds)</subtask>
+      </task>
+      <task id="3" name="Real-Time Calculation Logic">
+        <subtask>Implement client-side calculation (no server action needed)</subtask>
+        <subtask>Formula: annualSavings = (employees × stipend × 12) × 1.5 × 0.30</subtask>
+        <subtask>Formula: monthlyCost = employees × stipend</subtask>
+        <subtask>Formula: netCost = (monthlyCost × 12) - annualSavings</subtask>
+        <subtask>Use useMemo or state for reactive updates</subtask>
+        <subtask>Format currency with Nigerian Naira symbol (₦) and thousands separators</subtask>
+      </task>
+      <task id="4" name="Results Display UI">
+        <subtask>Create animated counter/progress display for savings</subtask>
+        <subtask>Show comparison: Without Stipends vs. With Stipends</subtask>
+        <subtask>Use Electric Lime (#96E072) for savings indicator</subtask>
+        <subtask>Add tooltip explaining the 150% tax deduction calculation</subtask>
+      </task>
+      <task id="5" name="CTA and Social Proof">
+        <subtask>Add Get Started button with Vibrant Coral (#FA7921) styling</subtask>
+        <subtask>Link to /signup/employer</subtask>
+        <subtask>Add social proof text below calculator</subtask>
+        <subtask>Style social proof with appropriate visual treatment</subtask>
+      </task>
+      <task id="6" name="Responsive Design and SEO">
+        <subtask>Ensure mobile-first responsive layout</subtask>
+        <subtask>Add meta tags: title, description for SEO</subtask>
+        <subtask>Add structured data (optional) for rich snippets</subtask>
+        <subtask>Test on mobile viewport sizes</subtask>
+      </task>
+      <task id="7" name="Testing">
+        <subtask>Unit Test: Calculation logic (boundary values, edge cases)</subtask>
+        <subtask>Verify input validation works correctly</subtask>
+        <subtask>Manual Check: Visual appearance matches design spec</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">Given I am on the public marketing site, when I visit /tax-calculator, then I see a calculator interface with input fields for: Number of employees (slider or input, range: 10-10,000), Average stipend per employee per month (₦5,000 - ₦50,000)</ac>
+    <ac id="2">The calculator shows real-time results as I adjust inputs: Monthly Stipend Cost (Employees × Stipend), Annual Tax Savings (Monthly Cost × 12 × 1.5 × 0.30), Net Annual Cost (Annual Cost - Annual Savings)</ac>
+    <ac id="3">I see a comparison display: Without Stipends: ₦X cost | With Stipends: ₦Y cost (₦Z saved)</ac>
+    <ac id="4">A prominent CTA button Get Started links to employer signup (/signup/employer)</ac>
+    <ac id="5">The page is mobile-responsive and matches the UX Design spec (Outfit headings, Inter body, Vibrant Coral CTA)</ac>
+    <ac id="6">The page includes social proof text: Join 50+ employers saving millions in taxes</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 4.4: Tax Savings Calculator (Pre-Sales Tool)</section>
+        <snippet>Public page at /tax-calculator. Inputs: number of employees (10-10,000), average stipend (₦5k-₦50k). Shows monthly cost, annual savings (150% × 30%), and net cost. CTA links to employer signup.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Implementation Patterns</section>
+        <snippet>Server Actions for mutations, TanStack Query for data fetching, Component Composition with ui/ and modules/ directories. Naming: kebab-case files, PascalCase components.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Project Structure</section>
+        <snippet>src/app for Next.js App Router, src/components/ui for reusable atoms, src/components/modules for feature-specific components, src/lib for shared utilities.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/4-3-employer-welfare-spending-report.md</path>
+        <title>Previous Story Learnings</title>
+        <section>Dev Notes</section>
+        <snippet>Currency ₦ symbol works in JSX with standard UTF-8. Calculation patterns use integer math for precision. Summary cards work well for financial data display.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/components/modules/dashboard/TaxShieldWidget.tsx</path>
+        <kind>component</kind>
+        <symbol>TaxShieldWidget</symbol>
+        <lines>1-154</lines>
+        <reason>Reference for animated counter using Framer Motion (useMotionValue, useSpring, useTransform), tooltip pattern, progress bar, and electric-lime color usage. Reuse patterns for animations.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/ui/button.tsx</path>
+        <kind>component</kind>
+        <symbol>Button</symbol>
+        <lines>1-53</lines>
+        <reason>Reusable Button component with variants. Use for CTA button - may need to add vibrant-coral variant or use className override.</reason>
+      </artifact>
+      <artifact>
+        <path>src/lib/utils.ts</path>
+        <kind>utility</kind>
+        <symbol>formatCurrency, cn</symbol>
+        <lines>1-14</lines>
+        <reason>formatCurrency formats NGN with proper locale. Note: divides by 100 (kobo). cn utility for Tailwind class merging.</reason>
+      </artifact>
+      <artifact>
+        <path>src/middleware.ts</path>
+        <kind>middleware</kind>
+        <symbol>isProtectedRoute</symbol>
+        <lines>5-7</lines>
+        <reason>Confirms /dashboard(.*) is protected. Routes outside this pattern (like /tax-calculator) are public - no auth check needed.</reason>
+      </artifact>
+      <artifact>
+        <path>src/app/layout.tsx</path>
+        <kind>layout</kind>
+        <symbol>RootLayout</symbol>
+        <lines>1-52</lines>
+        <reason>Defines Outfit and Inter fonts as CSS variables. Use font-outfit for headings, font-inter for body text per UX spec.</reason>
+      </artifact>
+      <artifact>
+        <path>tailwind.config.ts</path>
+        <kind>config</kind>
+        <symbol>theme.extend.colors</symbol>
+        <lines>11-17</lines>
+        <reason>Color tokens: electric-royal-blue (#2563EB), vibrant-coral (#FA7921), electric-lime (#5FA83B). Use bg-vibrant-coral for CTA, text-electric-lime for savings.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <package name="next" version="^16.0.7" />
+        <package name="react" version="^19.2.0" />
+        <package name="framer-motion" version="^12.23.25" note="For animated counters - see TaxShieldWidget" />
+        <package name="tailwindcss" version="^3.4.1" />
+        <package name="class-variance-authority" version="^0.7.1" />
+        <package name="clsx" version="^2.1.1" />
+        <package name="lucide-react" version="^0.555.0" note="Icon library if needed" />
+        <package name="vitest" version="^4.0.13" devDependency="true" />
+        <package name="@testing-library/react" version="^16.3.0" devDependency="true" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">Public page - route at src/app/tax-calculator/page.tsx (outside (dashboard) group)</constraint>
+    <constraint type="architecture">Pure client-side React - no Server Actions needed for calculations</constraint>
+    <constraint type="architecture">No database tables required</constraint>
+    <constraint type="naming">Files: kebab-case (tax-savings-calculator.tsx), Components: PascalCase (TaxSavingsCalculator)</constraint>
+    <constraint type="styling">Use Tailwind with project color tokens: vibrant-coral for CTA, electric-lime for savings</constraint>
+    <constraint type="fonts">Headings: font-outfit, Body: font-inter (already configured in layout.tsx)</constraint>
+    <constraint type="responsive">Mobile-first responsive design required</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>formatCurrency</name>
+      <kind>function</kind>
+      <signature>function formatCurrency(amount: number): string</signature>
+      <path>src/lib/utils.ts</path>
+      <note>Formats NGN currency. Input is in kobo (divide by 100). For this story, may need a simpler formatter that takes naira directly.</note>
+    </interface>
+    <interface>
+      <name>Button</name>
+      <kind>component</kind>
+      <signature>Button({ variant, size, asChild, className, ...props })</signature>
+      <path>src/components/ui/button.tsx</path>
+      <note>Use with Link component via asChild prop for CTA navigation</note>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Use Vitest for unit tests. Test files in __tests__ directories adjacent to source files. Use @testing-library/react for component tests. Follow existing patterns in src/components/modules/dashboard/__tests__/.</standards>
+    <locations>
+      <location>src/components/modules/tax/__tests__/</location>
+      <location>src/app/tax-calculator/__tests__/</location>
+    </locations>
+    <ideas>
+      <idea ac="1,2">Test calculation logic with boundary values: min employees (10), max employees (10000), min stipend (5000), max stipend (50000)</idea>
+      <idea ac="2">Test formula correctness: verify annualSavings = (employees × stipend × 12) × 1.5 × 0.30</idea>
+      <idea ac="2">Test reactive updates: changing inputs updates results correctly</idea>
+      <idea ac="3">Test comparison display format and values</idea>
+      <idea ac="4">Test CTA button links to correct signup route</idea>
+    </ideas>
+  </tests>
+</story-context>

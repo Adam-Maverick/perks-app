@@ -2,6 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import EmployeeProfile from "@/components/modules/employee/EmployeeProfile";
 import TaxShieldWidget from "@/components/modules/dashboard/TaxShieldWidget";
+import WalletWidget from "@/components/modules/wallet/WalletWidget";
 
 export default async function EmployeeDashboard() {
     const { userId } = await auth();
@@ -54,23 +55,8 @@ export default async function EmployeeDashboard() {
 
                 {/* Dashboard Widgets Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Wallet Widget Placeholder */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 bg-electric-royal-blue/10 rounded-lg flex items-center justify-center">
-                                <span className="text-2xl">💰</span>
-                            </div>
-                            <h3 className="font-outfit text-lg font-semibold text-gray-900">
-                                Stipend Wallet
-                            </h3>
-                        </div>
-                        <p className="font-inter text-3xl font-bold text-electric-royal-blue mb-2">
-                            ₦0.00
-                        </p>
-                        <p className="font-inter text-sm text-gray-500">
-                            Available balance
-                        </p>
-                    </div>
+                    {/* Wallet Widget (Story 5.3) */}
+                    <WalletWidget />
 
                     {/* Deals Widget Placeholder */}
                     <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">

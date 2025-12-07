@@ -61,20 +61,21 @@ development_status:
   epic-3-retrospective: done
   
   epic-4-prep: done
-  epic-4: in-progress
+  epic-4: done
   4-1-tax-shield-view-employee-dashboard: done
   4-2-rent-receipt-generation: done 
   4-3-employer-welfare-spending-report: done
-  4-4-tax-savings-calculator-pre-sales-tool: backlog
+  4-4-tax-savings-calculator-pre-sales-tool: done
   
   # Infrastructure
-  infra-vitest-jsdom-setup: backlog
-  epic-4-retrospective: optional
+  infra-vitest-jsdom-setup: done
+  epic-4-retrospective: completed
   
-  epic-5: backlog
-  5-1-wallet-data-model-balance-tracking: backlog
-  5-2-stipend-funding-employer-action: backlog
-  5-3-wallet-balance-display-employee-dashboard: backlog
+  epic-5: in-progress
+  5-0-technical-spike-split-payments: done
+  5-1-wallet-data-model-balance-tracking: done
+  5-2-stipend-funding-employer-action: done
+  5-3-wallet-balance-display-employee-dashboard: done
   5-4-stipend-payment-at-checkout: backlog
   epic-5-retrospective: optional
   
@@ -83,4 +84,5 @@ development_status:
   6-2-usage-analytics-dashboard: backlog
   6-3-communication-templates: backlog
   6-4-employer-profile-settings: backlog
+  6-5-employer-registration-flow: backlog
   epic-6-retrospective: optional

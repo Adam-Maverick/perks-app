@@ -1,0 +1,108 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5.1</storyId>
+    <title>Wallet Data Model &amp; Balance Tracking</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/5-1-wallet-data-model-balance-tracking.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>create the wallet system</iWant>
+    <soThat>employees can store and spend stipend funds</soThat>
+    <tasks>
+- [ ] **Database Schema** (AC: 1, 2, 3, 4)
+  - [ ] Define `wallets` table in `src/db/schema.ts` with `user_id` unique index.
+  - [ ] Define `wallet_transactions` table in `src/db/schema.ts` with fields: `type`, `amount`, `status`, `reference_id`.
+  - [ ] Add `CHECK` constraint for `balance >= 0`.
+  - [ ] Generate migration: `npx drizzle-kit generate`.
+
+- [ ] **Transaction Logic Helper** (AC: 7)
+  - [ ] Create `src/server/procedures/wallet.ts` (or similar service).
+  - [ ] Implement `createWallet(userId)` function.
+  - [ ] Implement `getWalletBalance(userId)` function.
+
+- [ ] **Testing** (AC: 5, 6)
+  - [ ] Test: Create wallet for user.
+  - [ ] Test: Prevent duplicate wallet for same user.
+  - [ ] Test: Transaction insertion (mock data).
+  - [ ] Test: Negative balance constraint triggers DB error.
+</tasks>
+  </story>
+
+  <acceptanceCriteria>
+1.  **Schema Definition**: The `wallets` table exists with fields: `user_id`, `balance`, `currency` (NGN), `created_at`, `updated_at`.
+2.  **One-to-One Relationship**: Each employee has exactly one wallet (enforced via unique constraint on `user_id`).
+3.  **Transaction Tracking**: The `wallet_transactions` table tracks all movements with types: `DEPOSIT`, `SPEND`, `REFUND` (and `RESERVED` / `RELEASED` as needed for reservation pattern).
+4.  **Transaction Fields**: Transactions include `wallet_id`, `type`, `amount`, `description`, `reference_id` (for idempotency/external links), `status` (PENDING, COMPLETED, FAILED), `created_at`.
+5.  **Immutability**: All transactions are immutable (no updates to amount/type, only status updates allowed for reservation flow).
+6.  **Balance Integrity**: Wallet balance cannot go negative (enforced via DB constraint `CHECK (balance >= 0)`).
+7.  **Calculation Logic**: Wallet balance logic ensures `balance` field always equals `SUM(completed deposits) - SUM(completed spends)`.
+</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      - path: docs/architecture.md
+        title: Architecture
+        section: Data Models
+        snippet: Wallet: Stores stipend balance. Linked to Employee. Transaction: Records all money movement. Types: DEPOSIT, SPEND, REFUND. ADR-005: Split Payment Atomicity using Reservation Pattern.
+      - path: docs/epics.md
+        title: Epic 5: Employee Wallet &amp; Stipends
+        section: Story 5.1
+        snippet: Create wallets table (userId, balance, currency) and wallet_transactions table. Enforce 1:1 user-wallet. Ensure balance logic: SUM(deposits) - SUM(spends).
+    </docs>
+    <code>
+      - path: src/db/schema.ts
+        kind: schema
+        symbol: wallets
+        lines: 78-85
+        reason: Existing wallets table definition that needs review or update.
+      - path: src/db/schema.ts
+        kind: schema
+        symbol: transactions
+        lines: 91-114
+        reason: Existing transactions table definition. Note: Story 5.1 introduces WALLET transactions, distinct from ESCROW transactions. Need to consider if they share the table or use a new one (AC says 'wallet_transactions'). Architecture usually suggests separating distinct concerns or using a unified ledger. Story requires 'wallet_transactions' table.
+    </code>
+    <dependencies>
+      - Next.js 15
+      - Drizzle ORM
+      - PostgreSQL (Neon)
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - **ADR-005 (Split Payment Atomicity)**: Transactions must support Reservation Pattern (PENDING, COMPLETED, FAILED status).
+    - **Concurrency**: Use atomic updates (`UPDATE ... SET balance = balance + :amount`).
+    - **Immutability**: Transaction records (amount, type) are immutable once created; only status changes.
+    - **Balance Constraint**: DB-level CHECK constraint for non-negative balance.
+  </constraints>
+
+  <interfaces>
+    - name: createWallet
+      kind: Function
+      signature: (userId: string) =&gt; Promise&lt;Wallet&gt;
+      path: src/server/procedures/wallet.ts
+    - name: getWalletBalance
+      kind: Function
+      signature: (userId: string) =&gt; Promise&lt;number&gt;
+      path: src/server/procedures/wallet.ts
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest for unit tests. Place tests in `src/server/procedures/__tests__/wallet.test.ts`. Mock database calls where appropriate but prefer integration tests for DB constraints (using a test DB if available, or carefully mocked schema behavior). Target 100% test coverage for financial logic.
+    </standards>
+    <locations>
+      src/server/procedures/__tests__/
+    </locations>
+    <ideas>
+      - Test `createWallet` ensures 1:1 unique constraint (try creating twice).
+      - Test `getWalletBalance` aggregates transactions correctly (mock varied transaction states).
+      - Test specific DB constraint behavior (negative balance) if possible (integration test) or verify logic handles negative checks before insert.
+      - Test race conditions on balance updates (simulated).
+    </ideas>
+  </tests>
+</story-context>

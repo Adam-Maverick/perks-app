@@ -81,9 +81,9 @@ export default async function RosterPage() {
                                     <td className="px-6 py-4 text-gray-600">{emp.department || "-"}</td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${emp.status === 'active' ? 'bg-green-100 text-green-800' :
-                                                emp.status === 'invited' ? 'bg-yellow-100 text-yellow-800' :
-                                                    emp.status === 'inactive' ? 'bg-red-100 text-red-800' :
-                                                        'bg-gray-100 text-gray-800'
+                                            emp.status === 'invited' ? 'bg-yellow-100 text-yellow-800' :
+                                                emp.status === 'inactive' ? 'bg-red-100 text-red-800' :
+                                                    'bg-gray-100 text-gray-800'
                                             }`}>
                                             {emp.status === 'inactive' ? 'Transferred' : emp.status}
                                         </span>

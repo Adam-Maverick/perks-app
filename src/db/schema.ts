@@ -76,6 +76,7 @@ export const accountTransfers = pgTable('account_transfers', {
 });
 
 // Wallets Table (Linked to User for Portability)
+// Story 5.1: Added unique index on user_id for 1:1 relationship
 export const wallets = pgTable('wallets', {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: text('user_id').references(() => users.id).notNull(), // Linked to User, NOT Organization
@@ -83,7 +84,63 @@ export const wallets = pgTable('wallets', {
     currency: text('currency').default('NGN').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+    userIdIdx: index('wallets_user_id_idx').on(table.userId).concurrently(), // Performance index
+    userIdUnique: index('wallets_user_id_unique').on(table.userId), // Enforce 1:1 via unique index (AC: 2)
+}));
+
+// ============================================
+// WALLET TRANSACTIONS SCHEMA (Story 5.1)
+// ============================================
+
+// Wallet Transaction Type Enum (AC: 3)
+export const walletTransactionTypeEnum = pgEnum('wallet_transaction_type', [
+    'DEPOSIT',    // Employer funds wallet
+    'SPEND',      // Employee spends from wallet
+    'REFUND',     // Refund to wallet
+    'RESERVED',   // ADR-005: Reservation pattern - funds reserved but not committed
+    'RELEASED',   // ADR-005: Reserved funds released (rollback)
+]);
+
+// Wallet Transaction Status Enum (AC: 4, ADR-005)
+export const walletTransactionStatusEnum = pgEnum('wallet_transaction_status', [
+    'PENDING',    // Transaction initiated, not yet committed
+    'COMPLETED',  // Transaction committed and balance updated
+    'FAILED',     // Transaction failed/rolled back
+]);
+
+// Wallet Transactions Table (AC: 3, 4)
+export const walletTransactions = pgTable('wallet_transactions', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    walletId: uuid('wallet_id').references(() => wallets.id).notNull(),
+    type: walletTransactionTypeEnum('type').notNull(),
+    amount: integer('amount').notNull(), // In kobo, always positive
+    description: text('description'),
+    referenceId: text('reference_id').unique(), // For idempotency and external links (AC: 4)
+    status: walletTransactionStatusEnum('status').default('PENDING').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    walletIdIdx: index('wallet_transactions_wallet_id_idx').on(table.walletId),
+    statusIdx: index('wallet_transactions_status_idx').on(table.status),
+    referenceIdIdx: index('wallet_transactions_reference_id_idx').on(table.referenceId),
+    createdAtIdx: index('wallet_transactions_created_at_idx').on(table.createdAt),
+}));
+
+// Wallet Relations (Story 5.1)
+export const walletsRelations = relations(wallets, ({ one, many }) => ({
+    user: one(users, {
+        fields: [wallets.userId],
+        references: [users.id],
+    }),
+    walletTransactions: many(walletTransactions),
+}));
+
+export const walletTransactionsRelations = relations(walletTransactions, ({ one }) => ({
+    wallet: one(wallets, {
+        fields: [walletTransactions.walletId],
+        references: [wallets.id],
+    }),
+}));
 
 // Transactions Table (Extended for Story 3.2: Paystack Integration)
 export const transactionTypeEnum = pgEnum('transaction_type', ['credit', 'debit']);
