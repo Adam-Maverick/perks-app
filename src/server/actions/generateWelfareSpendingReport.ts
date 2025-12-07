@@ -21,7 +21,7 @@ const reportSchema = z.object({
         message: 'Invalid end date format',
     }),
     format: z.enum(['pdf', 'csv'], {
-        errorMap: () => ({ message: 'Format must be pdf or csv' }),
+        error: 'Format must be pdf or csv',
     }),
 });
 

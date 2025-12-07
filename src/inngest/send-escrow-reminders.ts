@@ -90,6 +90,15 @@ export const sendEscrowReminders = inngest.createFunction(
                         continue;
                     }
 
+                    // Skip if merchant is null
+                    if (!hold.transaction?.merchant) {
+                        failed.push({
+                            holdId: hold.id,
+                            error: "Merchant not found for transaction",
+                        });
+                        continue;
+                    }
+
                     const transactionUrl = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/employee/transactions/${hold.transactionId}`;
 
                     await resend.emails.send({
@@ -130,6 +139,15 @@ export const sendEscrowReminders = inngest.createFunction(
                         failed.push({
                             holdId: hold.id,
                             error: "User email not found",
+                        });
+                        continue;
+                    }
+
+                    // Skip if merchant is null
+                    if (!hold.transaction?.merchant) {
+                        failed.push({
+                            holdId: hold.id,
+                            error: "Merchant not found for transaction",
                         });
                         continue;
                     }
