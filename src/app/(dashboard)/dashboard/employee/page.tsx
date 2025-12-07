@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import EmployeeProfile from "@/components/modules/employee/EmployeeProfile";
+import TaxShieldWidget from "@/components/modules/dashboard/TaxShieldWidget";
 
 export default async function EmployeeDashboard() {
     const { userId } = await auth();
@@ -89,23 +90,8 @@ export default async function EmployeeDashboard() {
                         </p>
                     </div>
 
-                    {/* Tax Shield Widget Placeholder */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 bg-electric-lime/10 rounded-lg flex items-center justify-center">
-                                <span className="text-2xl">🛡️</span>
-                            </div>
-                            <h3 className="font-outfit text-lg font-semibold text-gray-900">
-                                Tax Savings
-                            </h3>
-                        </div>
-                        <p className="font-inter text-3xl font-bold text-electric-lime mb-2">
-                            ₦0.00
-                        </p>
-                        <p className="font-inter text-sm text-gray-500">
-                            Estimated annual savings
-                        </p>
-                    </div>
+                    {/* Tax Shield Widget */}
+                    <TaxShieldWidget userId={userId} />
                 </div>
 
                 {/* Quick Actions */}

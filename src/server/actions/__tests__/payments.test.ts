@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Set environment variable before importing modules
 vi.stubEnv('PAYSTACK_SECRET_KEY', 'sk_test_mock_key');
@@ -56,34 +55,40 @@ describe('payments.ts - Server Actions', () => {
         vi.restoreAllMocks();
     });
 
+    const mockDeal = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        merchantId: '123e4567-e89b-12d3-a456-426614174001',
+        title: 'Test Deal',
+        originalPrice: 100000,
+    };
+
+    const mockMerchant = {
+        id: '123e4567-e89b-12d3-a456-426614174001',
+        name: 'Test Merchant',
+        trustLevel: 'EMERGING',
+        contactInfo: JSON.stringify({
+            email: 'merchant@example.com',
+            account_number: '0123456789',
+            bank_code: '044',
+        }),
+        paystackRecipientCode: null,
+    };
+
+    const mockUser = {
+        id: 'user-123',
+        email: 'test@example.com',
+    };
+
+    const mockTransaction = {
+        id: 'txn-123',
+        userId: 'user-123',
+        dealId: '123e4567-e89b-12d3-a456-426614174000',
+        merchantId: '123e4567-e89b-12d3-a456-426614174001',
+        amount: 50000,
+        paystackReference: 'txn_test_123',
+    };
+
     describe('createEscrowTransaction', () => {
-        const mockDeal = {
-            id: '123e4567-e89b-12d3-a456-426614174000',
-            merchantId: '123e4567-e89b-12d3-a456-426614174001',
-            title: 'Test Deal',
-            originalPrice: 100000,
-        };
-
-        const mockMerchant = {
-            id: '123e4567-e89b-12d3-a456-426614174001',
-            name: 'Test Merchant',
-            trustLevel: 'EMERGING',
-        };
-
-        const mockUser = {
-            id: 'user-123',
-            email: 'test@example.com',
-        };
-
-        const mockTransaction = {
-            id: 'txn-123',
-            userId: 'user-123',
-            dealId: '123e4567-e89b-12d3-a456-426614174000',
-            merchantId: '123e4567-e89b-12d3-a456-426614174001',
-            amount: 50000,
-            paystackReference: 'txn_test_123',
-        };
-
         it('should successfully create escrow transaction with valid inputs', async () => {
             // Arrange
             const { auth } = await import('@clerk/nextjs/server');
@@ -246,16 +251,6 @@ describe('payments.ts - Server Actions', () => {
     });
 
     describe('createTransferRecipient', () => {
-        const mockMerchant = {
-            id: '123e4567-e89b-12d3-a456-426614174001',
-            name: 'Test Merchant',
-            contactInfo: JSON.stringify({
-                email: 'merchant@example.com',
-                account_number: '0123456789',
-                bank_code: '044',
-            }),
-            paystackRecipientCode: null,
-        };
 
         it('should successfully create transfer recipient', async () => {
             // Arrange
@@ -545,10 +540,6 @@ describe('payments.ts - Server Actions', () => {
         });
     });
     describe('refundTransaction', () => {
-        const mockTransaction = {
-            id: 'txn-123',
-            paystackReference: 'txn_ref_123',
-        };
 
         it('should successfully process refund', async () => {
             // Arrange
@@ -578,7 +569,7 @@ describe('payments.ts - Server Actions', () => {
                 'https://api.paystack.co/refund',
                 expect.objectContaining({
                     method: 'POST',
-                    body: expect.stringContaining('txn_ref_123'),
+                    body: expect.stringContaining('txn_test_123'),
                 })
             );
         });

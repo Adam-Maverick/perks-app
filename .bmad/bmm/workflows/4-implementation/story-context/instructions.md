@@ -10,6 +10,7 @@
 <critical>Check if context file already exists. If it does, ask user if they want to replace it, verify it, or cancel.</critical>
 
 <critical>DOCUMENT OUTPUT: Technical context file (.context.xml). Concise, structured, project-relative paths only.</critical>
+<critical>XML ESCAPING: You MUST escape special characters in all extracted content: &amp; to &amp;amp;, &lt; to &amp;lt;, &gt; to &amp;gt;.</critical>
 
 <workflow>
   <step n="1" goal="Find drafted story and check for existing context" tag="sprint-status">
@@ -103,7 +104,7 @@
       - path: PROJECT-RELATIVE path only (strip {project-root} prefix)
       - title: Document title
       - section: Relevant section name
-      - snippet: Brief excerpt (2-3 sentences max, NO invention)
+      - snippet: Brief excerpt (2-3 sentences max, NO invention). ESCAPE XML CHARACTERS (e.g. &amp; -&gt; &amp;amp;)
     </template-output>
   </step>
 
@@ -118,7 +119,7 @@
       - kind: file type (controller, service, component, test, etc.)
       - symbol: function/class/interface name
       - lines: line range if specific (e.g., "45-67")
-      - reason: brief explanation of relevance to this story
+      - reason: brief explanation of relevance to this story. ESCAPE XML CHARACTERS (e.g. &amp; -&gt; &amp;amp;)
 
       Populate interfaces with API/interface signatures:
       - name: Interface or API name

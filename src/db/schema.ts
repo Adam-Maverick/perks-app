@@ -87,7 +87,7 @@ export const wallets = pgTable('wallets', {
 
 // Transactions Table (Extended for Story 3.2: Paystack Integration)
 export const transactionTypeEnum = pgEnum('transaction_type', ['credit', 'debit']);
-export const transactionStatusEnum = pgEnum('transaction_status', ['pending', 'completed', 'failed']);
+export const transactionStatusEnum = pgEnum('transaction_status', ['pending', 'completed', 'failed', 'auto_completed']);
 
 export const transactions = pgTable('transactions', {
     id: uuid('id').defaultRandom().primaryKey(),
@@ -333,3 +333,60 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
     }),
 }));
 
+// ============================================
+// TAX & BENEFITS SCHEMA (Story 4.2)
+// ============================================
+
+// Rent Receipts Table
+export const rentReceipts = pgTable('rent_receipts', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: text('user_id').references(() => users.id).notNull(),
+    landlordName: text('landlord_name').notNull(),
+    propertyAddress: text('property_address').notNull(),
+    rentAmount: integer('rent_amount').notNull(), // In kobo (e.g., 15000000 for ₦150,000)
+    paymentDate: timestamp('payment_date').notNull(),
+    pdfUrl: text('pdf_url').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    userIdx: index('rent_receipts_user_id_idx').on(table.userId),
+    createdAtIdx: index('rent_receipts_created_at_idx').on(table.createdAt),
+}));
+
+// Rent Receipts Relations
+export const rentReceiptsRelations = relations(rentReceipts, ({ one }) => ({
+    user: one(users, {
+        fields: [rentReceipts.userId],
+        references: [users.id],
+    }),
+}));
+
+// Tax Reports Table (Story 4.3: Employer Welfare Spending Report)
+export const taxReports = pgTable('tax_reports', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    organizationId: text('organization_id').references(() => organizations.id).notNull(),
+    periodStart: timestamp('period_start').notNull(),
+    periodEnd: timestamp('period_end').notNull(),
+    totalFunded: integer('total_funded').notNull(), // In kobo
+    totalSpent: integer('total_spent').notNull(), // In kobo
+    taxDeduction: integer('tax_deduction').notNull(), // 150% of spending, in kobo
+    fileUrl: text('file_url'), // Optional: PDF stored in Vercel Blob
+    format: text('format').notNull(), // 'pdf' or 'csv'
+    createdBy: text('created_by').references(() => users.id).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    orgIdx: index('tax_reports_organization_id_idx').on(table.organizationId),
+    periodIdx: index('tax_reports_period_idx').on(table.periodStart, table.periodEnd),
+    createdAtIdx: index('tax_reports_created_at_idx').on(table.createdAt),
+}));
+
+// Tax Reports Relations
+export const taxReportsRelations = relations(taxReports, ({ one }) => ({
+    organization: one(organizations, {
+        fields: [taxReports.organizationId],
+        references: [organizations.id],
+    }),
+    createdByUser: one(users, {
+        fields: [taxReports.createdBy],
+        references: [users.id],
+    }),
+}));

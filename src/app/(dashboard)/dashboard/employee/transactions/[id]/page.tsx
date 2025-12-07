@@ -172,7 +172,15 @@ export default async function TransactionPage({ params }: PageProps) {
                         hasDispute={!!dispute}
                     />
 
-                    {escrowState === 'RELEASED' && (
+                    {escrowState === 'RELEASED' && transaction.status === 'auto_completed' && (
+                        <div className="w-full bg-blue-50 border border-blue-200 rounded-md p-3 text-center">
+                            <p className="text-sm text-blue-700 font-medium">
+                                ⚡ Auto-Completed: 14-day escrow period ended.
+                            </p>
+                        </div>
+                    )}
+
+                    {escrowState === 'RELEASED' && transaction.status !== 'auto_completed' && (
                         <p className="text-center text-sm text-green-600 font-medium">
                             ✓ Delivery confirmed. Transaction complete.
                         </p>

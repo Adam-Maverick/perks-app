@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createDispute, resolveDispute, uploadDisputeEvidence } from '../disputes';
 
 // Mock dependencies
@@ -73,12 +72,18 @@ describe('disputes.ts - Server Actions', () => {
     });
 
     describe('createDispute', () => {
+        // Use valid UUIDs for tests
+        const HOLD_UUID = 'a1b2c3d4-e5f6-4890-8bcd-ef1234567890';
+        const TXN_UUID = 'b2c3d4e5-f6a7-4901-8cde-f12345678901';
+        const USER_UUID = 'c3d4e5f6-a7b8-4012-8def-123456789012';
+        const DISPUTE_UUID = 'd4e5f6a7-b8c9-4123-8ef1-234567890123';
+
         const mockEscrowHold = {
-            id: 'hold-123',
-            transactionId: 'txn-123',
+            id: HOLD_UUID,
+            transactionId: TXN_UUID,
             state: 'HELD',
             transaction: {
-                userId: 'user-123',
+                userId: USER_UUID,
             },
         };
 
@@ -88,7 +93,7 @@ describe('disputes.ts - Server Actions', () => {
             const { db } = await import('@/db');
             const { transitionState } = await import('@/lib/escrow-state-machine');
 
-            vi.mocked(auth).mockResolvedValue({ userId: 'user-123' });
+            vi.mocked(auth).mockResolvedValue({ userId: USER_UUID });
 
             // Mock transaction context
             const mockTx = {
@@ -102,7 +107,7 @@ describe('disputes.ts - Server Actions', () => {
                 },
                 insert: vi.fn().mockReturnValue({
                     values: vi.fn().mockReturnValue({
-                        returning: vi.fn().mockResolvedValue([{ id: 'dispute-123' }]),
+                        returning: vi.fn().mockResolvedValue([{ id: DISPUTE_UUID }]),
                     }),
                 }),
             };
@@ -112,18 +117,18 @@ describe('disputes.ts - Server Actions', () => {
 
             // Act
             const result = await createDispute({
-                escrowHoldId: 'hold-123',
+                escrowHoldId: HOLD_UUID,
                 description: 'Item not received as described',
                 evidenceUrls: ['https://example.com/image.jpg'],
             });
 
             // Assert
             expect(result.success).toBe(true);
-            expect(result.disputeId).toBe('dispute-123');
+            expect(result.disputeId).toBe(DISPUTE_UUID);
             expect(transitionState).toHaveBeenCalledWith(
-                'hold-123',
+                HOLD_UUID,
                 'DISPUTED',
-                'user-123',
+                USER_UUID,
                 expect.any(String)
             );
         });
@@ -133,7 +138,7 @@ describe('disputes.ts - Server Actions', () => {
             const { auth } = await import('@clerk/nextjs/server');
             const { db } = await import('@/db');
 
-            vi.mocked(auth).mockResolvedValue({ userId: 'other-user' });
+            vi.mocked(auth).mockResolvedValue({ userId: 'e5f6a7b8-c9d0-1234-ef12-345678901234' });
 
             const mockTx = {
                 query: {
@@ -147,7 +152,7 @@ describe('disputes.ts - Server Actions', () => {
 
             // Act
             const result = await createDispute({
-                escrowHoldId: 'hold-123',
+                escrowHoldId: HOLD_UUID,
                 description: 'Test description',
                 evidenceUrls: [],
             });
@@ -162,7 +167,7 @@ describe('disputes.ts - Server Actions', () => {
             const { auth } = await import('@clerk/nextjs/server');
             const { db } = await import('@/db');
 
-            vi.mocked(auth).mockResolvedValue({ userId: 'user-123' });
+            vi.mocked(auth).mockResolvedValue({ userId: USER_UUID });
 
             const mockTx = {
                 query: {
@@ -179,7 +184,7 @@ describe('disputes.ts - Server Actions', () => {
 
             // Act
             const result = await createDispute({
-                escrowHoldId: 'hold-123',
+                escrowHoldId: HOLD_UUID,
                 description: 'Test description',
                 evidenceUrls: [],
             });
@@ -194,7 +199,7 @@ describe('disputes.ts - Server Actions', () => {
             const { auth } = await import('@clerk/nextjs/server');
             const { db } = await import('@/db');
 
-            vi.mocked(auth).mockResolvedValue({ userId: 'user-123' });
+            vi.mocked(auth).mockResolvedValue({ userId: USER_UUID });
 
             const mockTx = {
                 query: {
@@ -211,7 +216,7 @@ describe('disputes.ts - Server Actions', () => {
 
             // Act
             const result = await createDispute({
-                escrowHoldId: 'hold-123',
+                escrowHoldId: HOLD_UUID,
                 description: 'Test description',
                 evidenceUrls: [],
             });
@@ -223,12 +228,16 @@ describe('disputes.ts - Server Actions', () => {
     });
 
     describe('resolveDispute', () => {
+        const DISPUTE_UUID = 'd4e5f6a7-b8c9-4123-8ef1-234567890123'; // Version 4, Variant 8
+        const HOLD_UUID = 'a1b2c3d4-e5f6-4890-8bcd-ef1234567890';
+        const TXN_UUID = 'b2c3d4e5-f6a7-4901-8cde-f12345678901';
+
         const mockDispute = {
-            id: 'dispute-123',
-            escrowHoldId: 'hold-123',
+            id: DISPUTE_UUID,
+            escrowHoldId: HOLD_UUID,
             status: 'PENDING',
             escrowHold: {
-                transactionId: 'txn-123',
+                transactionId: TXN_UUID,
             },
         };
 
@@ -261,15 +270,19 @@ describe('disputes.ts - Server Actions', () => {
 
             // Act
             const result = await resolveDispute({
-                disputeId: 'dispute-123',
+                disputeId: DISPUTE_UUID,
                 resolution: 'RESOLVED_EMPLOYEE_FAVOR',
                 notes: 'Valid claim',
             });
 
+            if (!result.success) {
+                console.error('Test failed with error:', result.error);
+            }
+
             // Assert
             expect(result.success).toBe(true);
-            expect(transitionState).toHaveBeenCalledWith('hold-123', 'REFUNDED', 'admin-user', expect.any(String));
-            expect(refundTransaction).toHaveBeenCalledWith('txn-123');
+            expect(transitionState).toHaveBeenCalledWith(HOLD_UUID, 'REFUNDED', 'admin-user', expect.any(String));
+            expect(refundTransaction).toHaveBeenCalledWith(TXN_UUID);
         });
 
         it('should resolve in merchant favor (release)', async () => {
@@ -301,15 +314,15 @@ describe('disputes.ts - Server Actions', () => {
 
             // Act
             const result = await resolveDispute({
-                disputeId: 'dispute-123',
+                disputeId: DISPUTE_UUID,
                 resolution: 'RESOLVED_MERCHANT_FAVOR',
                 notes: 'Invalid claim',
             });
 
             // Assert
             expect(result.success).toBe(true);
-            expect(transitionState).toHaveBeenCalledWith('hold-123', 'RELEASED', 'admin-user', expect.any(String));
-            expect(releaseFundsToMerchant).toHaveBeenCalledWith('txn-123');
+            expect(transitionState).toHaveBeenCalledWith(HOLD_UUID, 'RELEASED', 'admin-user', expect.any(String));
+            expect(releaseFundsToMerchant).toHaveBeenCalledWith(TXN_UUID);
         });
     });
 

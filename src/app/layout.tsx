@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
+import { QueryClientProviderWrapper } from "@/components/QueryClientProviderWrapper";
 
 const outfit = Outfit({
     subsets: ["latin"],
@@ -25,6 +26,7 @@ export const viewport: Viewport = {
 };
 
 import { ClerkProvider } from '@clerk/nextjs';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { OfflineBanner } from "@/components/modules/marketplace/OfflineBanner";
 
@@ -35,13 +37,15 @@ export default function RootLayout({
 }>) {
     return (
         <ClerkProvider>
-            <html lang="en" className={`${outfit.variable} ${inter.variable}`} suppressHydrationWarning>
-                <body className="font-inter antialiased">
-                    <ServiceWorkerRegister />
-                    <OfflineBanner />
-                    {children}
-                </body>
-            </html>
+            <QueryClientProviderWrapper>
+                <html lang="en" className={`${outfit.variable} ${inter.variable}`} suppressHydrationWarning>
+                    <body className="font-inter antialiased">
+                        <ServiceWorkerRegister />
+                        <OfflineBanner />
+                        {children}
+                    </body>
+                </html>
+            </QueryClientProviderWrapper>
         </ClerkProvider>
     );
 }

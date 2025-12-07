@@ -939,6 +939,63 @@ So that I can update company details and preferences.
 
 ---
 
+### Story 6.5: Admin Dispute Resolution Portal (Deferred from Epic 3)
+
+As an **internal admin**,
+I want to review and resolve disputes,
+So that I can adjudicate between employees and merchants.
+
+**Acceptance Criteria:**
+
+**Given** I am logged in as a system admin
+**When** I navigate to `/admin/disputes`
+**Then** I see a list of active disputes (status: DISPUTED)
+**And** I can view evidence from both Employee and Merchant
+**And** I can make a ruling: "Refund Employee" or "Release to Merchant"
+**And** The ruling updates the escrow state (REFUNDED or RELEASED)
+**And** The ruling triggers the appropriate money movement (Paystack refund or transfer)
+**And** Both parties receive an email notification of the decision
+**And** I can add internal notes to the dispute record
+
+**Prerequisites:** Story 3.4
+
+**Technical Notes:**
+- Create admin dashboard layout (separate from Employer dashboard)
+- Implement Server Action `resolveDispute(disputeId, decision, notes)`
+- Use `db.transaction()` to ensure state update and money movement are atomic
+- Add RBAC (Role-Based Access Control) to ensure only authorized admins can access
+- Test: Simulate dispute → resolve as admin → verify funds moved
+
+---
+
+### Story 6.6: Merchant Dispute Response UI (Deferred from Epic 3)
+
+As a **merchant**,
+I want to respond to a dispute with my own evidence,
+So that I can prove I delivered the service.
+
+**Acceptance Criteria:**
+
+**Given** a transaction has been disputed by an employee
+**When** I receive the dispute notification email
+**Then** I can click a link to view the dispute details (no login required, use secure token)
+**And** I can see the employee's claim and evidence
+**And** I can upload my own evidence (delivery receipt, photos)
+**And** I can submit a text explanation
+**And** The dispute status updates to "Evidence Submitted"
+**And** The admin is notified that merchant evidence is ready
+
+**Prerequisites:** Story 3.4
+
+**Technical Notes:**
+- Create public-facing dispute response page `/disputes/respond/[token]`
+- Generate secure, time-limited tokens for merchant access
+- Allow file upload (limit 3 files, 5MB each)
+- Implement Server Action `submitMerchantEvidence(token, evidence)`
+- Test: Click email link → upload evidence → verify admin sees it
+
+---
+
 ## FR Coverage Matrix
 
 | FR | Description | Epic | Stories |
@@ -964,7 +1021,7 @@ So that I can update company details and preferences.
 ## Summary
 
 **Total Epics:** 6
-**Total Stories:** 23
+**Total Stories:** 25
 
 **Epic Breakdown:**
 - **Epic 1 (Foundation):** 5 stories
@@ -972,7 +1029,7 @@ So that I can update company details and preferences.
 - **Epic 3 (Escrow):** 5 stories
 - **Epic 4 (Tax & Benefits):** 4 stories
 - **Epic 5 (Wallet):** 4 stories
-- **Epic 6 (Employer Admin):** 4 stories
+- **Epic 6 (Employer Admin):** 6 stories
 
 **FR Coverage:** All 15 Functional Requirements are covered by at least one story.
 

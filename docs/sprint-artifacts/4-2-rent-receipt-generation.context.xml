@@ -1,0 +1,157 @@
+<story-context id="perks-app/stories/4-2-rent-receipt-generation/context" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.2</storyId>
+    <title>Rent Receipt Generation</title>
+    <storyKey>4-2-rent-receipt-generation</storyKey>
+    <status>drafted</status>
+    <generatedAt>2025-12-06T17:29:00+01:00</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/4-2-rent-receipt-generation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employee</asA>
+    <iWant>generate a rent receipt for tax relief</iWant>
+    <soThat>I can claim the new Rent Relief under Nigeria Tax Act 2025</soThat>
+    <tasks>
+      - [ ] **Task 1: Database Schema for Rent Receipts** <!-- id: 1 -->
+        - [ ] Create `rent_receipts` table in `src/db/schema.ts`
+        - [ ] Fields: `id`, `user_id`, `landlord_name`, `property_address`, `rent_amount`, `payment_date`, `pdf_url`, `created_at`
+        - [ ] Run migration `npx drizzle-kit push`
+
+      - [ ] **Task 2: Implement PDF Generation Logic** <!-- id: 2 -->
+        - [ ] Implement PDF generator using `react-pdf` (or chosen library from spike)
+        - [ ] Style PDF to match FIRS requirements (Official formatting, platform stamp)
+        - [ ] Ensure PDF includes all required fields (Employee, Landlord, Payment Proof)
+
+      - [ ] **Task 3: Implement Server Action** <!-- id: 3 -->
+        - [ ] Create `generateRentReceipt(data)` in `src/server/actions`
+        - [ ] Validate input with Zod (Amount ₦50k - ₦5M)
+        - [ ] Security: Verify `userId` matches authenticated user (Fix for IDOR risk)
+        - [ ] Apply Rate Limiting (e.g., 5 requests/hour) using generic middleware or Upstash
+        - [ ] Store PDF in Vercel Blob/S3 and save record to DB
+
+      - [ ] **Task 4: Build Rent Receipt UI Form** <!-- id: 4 -->
+        - [ ] Create page `/dashboard/employee/tax/rent-receipt`
+        - [ ] Implement form with validation (Landlord, Address, Amount, Date)
+        - [ ] Handle submission states (Generating, Success, Error)
+        - [ ] Display previously generated receipts list
+
+      - [ ] **Task 5: Email Integration** <!-- id: 5 -->
+        - [ ] Integrate Resend to email the generated PDF attachment
+        - [ ] Create email template "Your Rent Receipt"
+
+      - [ ] **Task 6: Testing** <!-- id: 6 -->
+        - [ ] Unit Test: Server Action validation and logic
+        - [ ] Unit Test: PDF generation (mocking library)
+        - [ ] Integration Test: Full flow (Form -> Generation -> DB -> Email)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. **Given** I have paid rent using the platform (or manually entered rent data)
+       **When** I navigate to `/dashboard/employee/tax/rent-receipt`
+       **Then** I can enter: landlord name, property address, rent amount, payment date
+    2. **And** The system generates a PDF receipt with official formatting
+    3. **And** The receipt includes: employee details, landlord details, payment proof, platform stamp
+    4. **And** I can download the PDF or email it to myself
+    5. **And** The receipt is stored in my account for future access
+    6. **And** The PDF is compliant with FIRS (Federal Inland Revenue Service) requirements
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/4-1-tax-shield-view-employee-dashboard.md</path>
+        <title>Previous Story Learnings</title>
+        <section>Dev Agent Record</section>
+        <snippet>Security Critical: Ensure userId validation in Server Actions explicitly checks auth().userId. Use Electric Lime (#5FA83B) color palette. Return standardized ActionResponse.</snippet>
+      </doc>
+      <doc>
+        <path>docs/prep-sprint-epic-4.md</path>
+        <title>Epic 4 Prep Sprint</title>
+        <section>1. Technical Spike: PDF Generation Library</section>
+        <snippet>Selected library for PDF generation (react-pdf). Requirement for server-side generation (Next.js Server Actions) and custom styling (Official FIRS format).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Server Actions for Mutations</section>
+        <snippet>All data mutations MUST use Next.js Server Actions. Validate inputs with Zod. Return standardized ActionResponse type.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics</title>
+        <section>Story 4.2: Rent Receipt Generation</section>
+        <snippet>Goal: Generate rent receipt for tax relief. Requirements: PDF compliant with FIRS, includes platform stamp, landlord details, stored in account.</snippet>
+      </doc>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>Product Requirements Document</title>
+        <section>6. Tax Compliance Features</section>
+        <snippet>Rent receipt generation for employee tax relief (proof of payment for new Rent Relief requirement). Part of Tax Act 2025 compliance.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <item>
+        <path>scripts/prototype-pdf.tsx</path>
+        <kind>script</kind>
+        <symbol>generate</symbol>
+        <lines>6-31</lines>
+        <reason>Prototype implementation of PDF generation using @react-pdf/renderer. Acts as a reference implementation.</reason>
+      </item>
+      <item>
+        <path>src/server/actions/calculateEmployeeTaxContribution.ts</path>
+        <kind>server-action</kind>
+        <symbol>calculateEmployeeTaxContribution</symbol>
+        <lines>24-94</lines>
+        <reason>Example of standardized Server Action with Zod validation, auth checks, and error handling. Follow this pattern.</reason>
+      </item>
+      <item>
+        <path>src/components/pdf/RentReceipt.tsx</path>
+        <kind>component</kind>
+        <symbol>RentReceipt</symbol>
+        <reason>Component likely created during prototype spike (referenced in script). Should be reused/extended.</reason>
+      </item>
+    </code>
+    <dependencies>
+      <dep>@react-pdf/renderer</dep>
+      <dep>resend</dep>
+      <dep>zod</dep>
+      <dep>drizzle-orm</dep>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - **Security:** Strict `auth().userId` checks in Server Actions to prevent IDOR.
+    - **PDF Generation:** Must be server-side compatible.
+    - **Compliance:** Receipt format must adhere to FIRS requirements.
+    - **Performance:** Generate PDF with low latency; consider offloading if too slow (though synchronous generation usually fine for receipts).
+    - **Colors:** Use official branding/black &amp; white for receipt reliability; UI can use Electric Lime (#5FA83B) if needed.
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>generateRentReceipt</name>
+      <kind>Server Action</kind>
+      <signature>async function generateRentReceipt(data: RentReceiptInput): Promise&lt;ActionResponse&lt;RentReceiptResult&gt;&gt;</signature>
+      <path>src/server/actions/generateRentReceipt.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit tests for Server Actions (validation, logic, securities). Mocking PDF generation library for unit tests. Integration test for the full flow (Form -> Action -> PDF -> Email).
+    </standards>
+    <locations>
+      src/server/actions/__tests__/
+      scripts/test-rent-receipt.ts
+    </locations>
+    <ideas>
+      <idea ac="2">Test PDF content contains all required fields (regex check on PDF text content if possible or component props).</idea>
+      <idea ac="6">Verify FIRS compliance elements (stamp, dates) are present.</idea>
+      <idea ac="1">Test form validation prevents submission with invalid amounts.</idea>
+    </ideas>
+  </tests>
+</story-context>

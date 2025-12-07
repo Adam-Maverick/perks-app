@@ -57,14 +57,18 @@ development_status:
   3-2-paystack-split-payment-integration: done
   3-3-employee-confirmation-workflow: done
   3-4-evidence-based-dispute-resolution: done
-  3-5-auto-release-scheduler-14-day-timer: backlog
-  epic-3-retrospective: optional
+  3-5-auto-release-scheduler-14-day-timer: done
+  epic-3-retrospective: done
   
-  epic-4: backlog
-  4-1-tax-shield-view-employee-dashboard: backlog
-  4-2-rent-receipt-generation: backlog
-  4-3-employer-welfare-spending-report: backlog
+  epic-4-prep: done
+  epic-4: in-progress
+  4-1-tax-shield-view-employee-dashboard: done
+  4-2-rent-receipt-generation: done 
+  4-3-employer-welfare-spending-report: done
   4-4-tax-savings-calculator-pre-sales-tool: backlog
+  
+  # Infrastructure
+  infra-vitest-jsdom-setup: backlog
   epic-4-retrospective: optional
   
   epic-5: backlog

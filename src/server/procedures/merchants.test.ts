@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getMerchantsWithDealCounts } from './merchants';
 import { db } from '@/db';
 

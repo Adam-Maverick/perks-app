@@ -20,8 +20,14 @@ const sendMerchantEscrowNotificationSchema = z.object({
     transactionId: z.string().uuid("Invalid transaction ID"),
 });
 
-// Resend configuration
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy Resend initialization for testability
+let _resend: Resend | null = null;
+function getResend(): Resend {
+    if (!_resend) {
+        _resend = new Resend(process.env.RESEND_API_KEY);
+    }
+    return _resend;
+}
 
 /**
  * Send confirmation emails to employee and merchant
@@ -89,7 +95,7 @@ export async function sendConfirmationEmails(
                 })
             );
 
-            const employeeEmailResult = await resend.emails.send({
+            const employeeEmailResult = await getResend().emails.send({
                 from: "Stipends <onboarding@resend.dev>",
                 to: user.email,
                 subject: "Delivery Confirmed - Payment Released",
@@ -113,7 +119,7 @@ export async function sendConfirmationEmails(
                 })
             );
 
-            const merchantEmailResult = await resend.emails.send({
+            const merchantEmailResult = await getResend().emails.send({
                 from: "Stipends <onboarding@resend.dev>",
                 to: merchantContact.email,
                 subject: "Payment Released - Funds on the way",
@@ -210,7 +216,7 @@ export async function sendMerchantEscrowNotification(
         releaseDate.setDate(releaseDate.getDate() + 7);
 
         // 5. Send email via Resend
-        const { data, error } = await resend.emails.send({
+        const { data, error } = await getResend().emails.send({
             from: "Stipends <onboarding@resend.dev>",
             to: contactInfo.email,
             subject: "Payment Received - Funds Held in Escrow",
@@ -295,7 +301,7 @@ export async function sendDisputeNotifications(disputeId: string): Promise<Actio
 
         // 2. Send Employee Email
         if (user.email) {
-            await resend.emails.send({
+            await getResend().emails.send({
                 from: "Stipends <onboarding@resend.dev>",
                 to: user.email,
                 subject: "Your dispute has been submitted",
@@ -320,7 +326,7 @@ export async function sendDisputeNotifications(disputeId: string): Promise<Actio
         }
 
         if (merchantEmail) {
-            await resend.emails.send({
+            await getResend().emails.send({
                 from: "Stipends <onboarding@resend.dev>",
                 to: merchantEmail,
                 subject: `Dispute filed for transaction ${transaction.paystackReference || transaction.id}`,
@@ -337,7 +343,7 @@ export async function sendDisputeNotifications(disputeId: string): Promise<Actio
         // 4. Send Admin Email
         const adminEmail = process.env.ADMIN_EMAIL;
         if (adminEmail) {
-            await resend.emails.send({
+            await getResend().emails.send({
                 from: "Stipends <onboarding@resend.dev>",
                 to: adminEmail,
                 subject: "New dispute requires review",

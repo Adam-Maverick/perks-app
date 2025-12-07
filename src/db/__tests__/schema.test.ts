@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import { users, organizations } from '@/db/schema';
 
 describe('Database Schema', () => {

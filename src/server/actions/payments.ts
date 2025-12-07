@@ -19,7 +19,6 @@ const createTransferRecipientSchema = z.object({
 });
 
 // Paystack API configuration
-const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY!;
 const PAYSTACK_API_URL = "https://api.paystack.co";
 
 /**
@@ -30,6 +29,7 @@ export async function refundTransaction(
     transactionId: string,
     amount?: number
 ): Promise<ActionResponse<{ refundId: string }>> {
+    const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
     if (!PAYSTACK_SECRET_KEY) {
         return { success: false, error: "Paystack secret key not configured" };
     }
@@ -172,6 +172,7 @@ export async function createEscrowTransaction(
         }).returning();
 
         // 7. Initialize Paystack transaction
+        const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
         const paystackPayload = {
             email: user.email,
             amount: amount.toString(), // Paystack expects string (in kobo)
@@ -237,6 +238,7 @@ export async function createEscrowTransaction(
 export async function createTransferRecipient(
     merchantId: string
 ): Promise<ActionResponse<{ recipientCode: string }>> {
+    const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
     // 0. Input Validation
     try {
         createTransferRecipientSchema.parse({ merchantId });
@@ -420,6 +422,7 @@ export async function releaseFundsToMerchant(
             reference: escrowHoldId,
         };
 
+        const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
         const paystackResponse = await fetch(`${PAYSTACK_API_URL}/transfer`, {
             method: "POST",
             headers: {

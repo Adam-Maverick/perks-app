@@ -1,0 +1,201 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>5</storyId>
+    <title>Auto-Release Scheduler (14-Day Timer)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-30</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/3-5-auto-release-scheduler-14-day-timer.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>system</asA>
+    <iWant>automatically release escrow after 14 days</iWant>
+    <soThat>merchants are paid even if employees forget to confirm</soThat>
+    <tasks>
+      - Create Inngest Auto-Release Function (AC: 1, 2, 4)
+      - Create Reminder Email Function (AC: 5)
+      - Create Auto-Release Notification Email (AC: 3)
+      - Create Reconciliation Job (AC: 6)
+      - Register Inngest Functions (AC: 1-6)
+      - Add Transaction Status Update (AC: 4)
+      - Write Unit Tests (AC: 1-6)
+      - Integration Testing (AC: 1-6)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given an escrow hold has been in HELD state for 14 days, when the daily Inngest cron job runs, then the escrow state changes to RELEASED
+    2. And the system triggers a Paystack Transfer to the merchant's bank account
+    3. And the employee receives an email: "Your escrow for [Merchant] has been auto-released. No action needed."
+    4. And the transaction shows "Auto-Completed" status
+    5. And reminder emails are sent on Day 7 and Day 12 (FR11)
+    6. And a reconciliation job runs to verify SUM(Escrow HELD) == Paystack Balance
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics - Story 3.5</title>
+        <section>Epic 3: Escrow Protection - Story 3.5</section>
+        <snippet>Auto-release triggers after 14 days of inactivity (HELD → RELEASED). Reminder emails sent on Day 7 and Day 12. Reconciliation job verifies SUM(Escrow HELD) == Paystack Balance.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture - Integration Points</title>
+        <section>Integration Points</section>
+        <snippet>Inngest functions defined in /src/inngest for scheduled tasks (e.g., escrow release). Paystack webhooks handled at /api/webhooks/paystack. Resend called via Server Actions for transactional emails.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture - ADR-004</title>
+        <section>Architecture Decision Records</section>
+        <snippet>ADR-004: Inngest chosen for reliable serverless scheduling (escrow release) without infrastructure management. Collections + Transfers model enables 7-day escrow holds.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/3-1-escrow-state-machine-core-logic.md</path>
+        <title>Previous Story 3.1 - Escrow State Machine</title>
+        <section>Dev Notes</section>
+        <snippet>State machine implemented in src/lib/escrow-state-machine.ts with transitionState() function. All state changes logged in escrow_audit_log. Supports HELD → RELEASED transitions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/3-3-employee-confirmation-workflow.md</path>
+        <title>Previous Story 3.3 - Employee Confirmation</title>
+        <section>Dev Notes</section>
+        <snippet>releaseFundsToMerchant() function in src/server/actions/payments.ts handles Paystack Transfer with idempotency keys. Email templates use React Email in src/components/emails.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/3-4-evidence-based-dispute-resolution.md</path>
+        <title>Previous Story 3.4 - Dispute Resolution</title>
+        <section>Dev Notes</section>
+        <snippet>Database transaction pattern: await db.transaction(async (tx) => { ... }). Testing infrastructure: Vitest with mocks for Paystack and Resend. Server Actions use Zod validation.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/lib/escrow-state-machine.ts</path>
+        <kind>service</kind>
+        <symbol>transitionState</symbol>
+        <lines>40-105</lines>
+        <reason>Core function for transitioning escrow states. Must be used for HELD → RELEASED transitions with actorId='SYSTEM' and appropriate reason.</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/actions/payments.ts</path>
+        <kind>service</kind>
+        <symbol>releaseFundsToMerchant</symbol>
+        <lines>356-474</lines>
+        <reason>Handles Paystack Transfer API calls with idempotency. Should be reused for auto-release to trigger merchant payments.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>escrowHolds</symbol>
+        <lines>N/A</lines>
+        <reason>Contains escrow_holds table with state, held_at, and releasedAt fields. Query for HELD state and held_at &lt; NOW() - INTERVAL '14 days'.</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>transactions</symbol>
+        <lines>N/A</lines>
+        <reason>Needs AUTO_COMPLETED status added to transaction status enum for auto-released transactions.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/emails/EmployeeConfirmationEmail.tsx</path>
+        <kind>component</kind>
+        <symbol>EmployeeConfirmationEmail</symbol>
+        <lines>N/A</lines>
+        <reason>Example React Email template pattern to follow for auto-release and reminder email templates.</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/emails/MerchantPaymentReleasedEmail.tsx</path>
+        <kind>component</kind>
+        <symbol>MerchantPaymentReleasedEmail</symbol>
+        <lines>N/A</lines>
+        <reason>Example email template for payment release notifications. Similar pattern needed for auto-release emails.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="inngest" version="NOT_INSTALLED" note="Required for cron job scheduling and serverless functions" />
+        <package name="drizzle-orm" version="^0.44.7" />
+        <package name="@react-email/components" version="^1.0.1" />
+        <package name="@react-email/render" version="^2.0.0" />
+        <package name="resend" version="^6.5.2" />
+        <package name="zod" version="^4.1.12" />
+        <package name="date-fns" version="^4.1.0" note="Useful for date calculations (14 days, Day 7, Day 12)" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Must use transitionState() from src/lib/escrow-state-machine.ts for all state changes
+    - Must use releaseFundsToMerchant() from src/server/actions/payments.ts for Paystack Transfers
+    - All Inngest functions must be registered in src/inngest/functions.ts and served via src/app/api/inngest/route.ts
+    - Cron jobs must run in WAT (West Africa Time, UTC+1): Auto-release at 2 AM, Reminders at 10 AM, Reconciliation at 3 AM
+    - Must use Paystack idempotency keys (format: auto-release-${transactionId}) to prevent duplicate transfers
+    - Do NOT auto-release disputed holds (state must be HELD only)
+    - Email templates must follow React Email pattern in src/components/emails
+    - All database operations must use db.transaction() for atomicity
+    - Testing: Vitest with mocks for Paystack API and Resend email
+    - Query optimization: Index on escrow_holds.state and escrow_holds.held_at required
+    - Error handling: Log errors, retry failed transfers (max 3 retries with exponential backoff)
+    - Reconciliation alerts sent to admin email only, no customer data exposure
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>transitionState</name>
+      <kind>function</kind>
+      <signature>async function transitionState(escrowHoldId: string, toState: EscrowState, actorId: string, reason: string): Promise&lt;TransitionResult&gt;</signature>
+      <path>src/lib/escrow-state-machine.ts</path>
+    </interface>
+    <interface>
+      <name>releaseFundsToMerchant</name>
+      <kind>function</kind>
+      <signature>async function releaseFundsToMerchant(escrowHoldId: string): Promise&lt;ActionResponse&lt;{ transferCode: string; reference: string }&gt;&gt;</signature>
+      <path>src/server/actions/payments.ts</path>
+    </interface>
+    <interface>
+      <name>Paystack Balance API</name>
+      <kind>REST endpoint</kind>
+      <signature>GET https://api.paystack.co/balance - Headers: Authorization: Bearer [SECRET_KEY] - Response: { status: true, data: { balance: number (kobo), currency: "NGN" } }</signature>
+      <path>External API</path>
+    </interface>
+    <interface>
+      <name>Paystack Transfer API</name>
+      <kind>REST endpoint</kind>
+      <signature>POST https://api.paystack.co/transfer - Payload: { source: "balance", amount: number, recipient: string, reason: string, reference: string } - Uses idempotency via reference field</signature>
+      <path>External API (called by releaseFundsToMerchant)</path>
+    </interface>
+    <interface>
+      <name>Inngest Client</name>
+      <kind>library</kind>
+      <signature>import { Inngest } from "inngest" - Create client with event key and app ID - Define functions with cron schedules</signature>
+      <path>To be created in src/inngest/client.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Vitest (configured in prep sprint Day 1). Coverage target: 100% for auto-release logic. Test files in src/**/__tests__/*.test.ts pattern. Mock Paystack API calls using vi.fn() and vi.spyOn(). Mock Resend email using same pattern. Mock Inngest context for cron job testing. Test valid and invalid scenarios. Test error handling (API failures, network errors). Use describe, it, expect from Vitest. Integration tests use real database (test environment) with manipulated held_at timestamps.
+    </standards>
+    <locations>
+      - src/inngest/__tests__/auto-release.test.ts (new)
+      - src/inngest/__tests__/send-escrow-reminders.test.ts (new)
+      - src/inngest/__tests__/reconcile-escrow.test.ts (new)
+      - scripts/test-auto-release.ts (integration test)
+    </locations>
+    <ideas>
+      AC#1: Test auto-release with 14-day-old hold (should release), Test auto-release with 13-day-old hold (should not release), Test auto-release with already-released hold (should skip), Test auto-release with disputed hold (should skip)
+      AC#2: Test Paystack Transfer API called with correct parameters, Test idempotency prevents duplicate transfers, Test error handling for failed transfers
+      AC#3: Test auto-release email sent to employee with correct content, Test email includes transaction details and CTA link
+      AC#4: Test transaction status updated to AUTO_COMPLETED, Test AUTO_COMPLETED badge displayed on transaction page
+      AC#5: Test Day 7 reminder sent to employees with 7-day-old holds, Test Day 12 reminder sent to employees with 12-day-old holds, Test no reminders sent for non-eligible holds
+      AC#6: Test reconciliation with matching balances (should pass), Test reconciliation with mismatched balances (should alert admin), Test Paystack Balance API error handling
+      Edge Cases: Test duplicate runs (idempotency), Test batch processing for large result sets, Test email failures (graceful handling), Test database transaction rollback on error
+    </ideas>
+  </tests>
+</story-context>

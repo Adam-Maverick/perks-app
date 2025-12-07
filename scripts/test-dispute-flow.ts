@@ -32,7 +32,6 @@ async function runTest() {
         await db.insert(users).values({
             id: employeeId,
             email: `employee_${testId}@example.com`,
-            role: 'employee',
             firstName: 'Test',
             lastName: 'Employee',
         });
@@ -49,10 +48,8 @@ async function runTest() {
         await db.insert(merchants).values({
             id: merchantId,
             name: `Merchant ${testId}`,
-            slug: `merchant-${testId}`,
             description: 'Test Merchant',
             trustLevel: 'EMERGING',
-            status: 'active',
         });
 
         // Create Category

@@ -1,0 +1,163 @@
+<story-context id="bmad-story-context" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.3</storyId>
+    <title>Employer Welfare Spending Report</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-12-06T19:50:52+01:00</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/4-3-employer-welfare-spending-report.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employer admin</asA>
+    <iWant>generate a monthly welfare spending report</iWant>
+    <soThat>I can claim the 50% additional tax deduction under the Nigeria Tax Act 2025</soThat>
+    <tasks>
+- [ ] **Task 1: Database Schema for Tax Reports**
+  - [ ] Create `tax_reports` table in `src/db/schema.ts`
+  - [ ] Fields: `id`, `organization_id`, `period_start`, `period_end`, `total_funded`, `total_spent`, `tax_deduction`, `file_url`, `created_by`, `created_at`
+  - [ ] Run migration `npx drizzle-kit push`
+
+- [ ] **Task 2: Implement Report Generation Logic**
+  - [ ] Create `src/server/procedures/tax/calculate-welfare-spend.ts` (Procedure pattern)
+  - [ ] Query `transactions` (type='debit'/'SPEND') linked to employees of the organization
+  - [ ] Query `wallet_transactions` (type='credit'/'DEPOSIT') for funding stats
+  - [ ] Calculate: `Deduction = Spending * 1.5` and `Savings = Deduction * 0.30`
+
+- [ ] **Task 3: PDF and CSV Generation**
+  - [ ] Create PDF template using `react-pdf` (Reuse `RentReceipt` patterns)
+    - [ ] Include Official Header, Org Details, Summary Table, Employee Breakdown Table, FIRS Disclaimer
+  - [ ] Create CSV generation utility (using `papaparse` or native string builder)
+
+- [ ] **Task 4: Implement Server Action**
+  - [ ] Create `generateWelfareSpendingReport(orgId, startDate, endDate, format)` in `src/server/actions`
+  - [ ] Security: Verify `auth().userId` is an admin of `orgId` (Check `employers` table)
+  - [ ] Call calculation procedure
+  - [ ] Generate file (PDF or CSV) and return stream or Blob URL
+  - [ ] Log entry to `tax_reports` table
+
+- [ ] **Task 5: Build Employer Reports UI**
+  - [ ] Create page `/dashboard/employer/tax/reports`
+  - [ ] Implement Date Range Picker component
+  - [ ] Add "Generate Report" stats preview (Summary cards before download)
+  - [ ] Add "Download PDF" and "Download CSV" buttons
+  - [ ] Handle loading states and error handling
+
+- [ ] **Task 6: Testing**
+  - [ ] Unit Test: Calculation logic (math precision is critical)
+  - [ ] Unit Test: Authorization (ensure only org admins can access)
+  - [ ] Manual Check: Verify PDF formatting matches "Professional/FIRS" standard
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** I am logged in as an employer admin and have funded employee stipend wallets
+   **When** I navigate to `/dashboard/employer/tax/reports`
+   **Then** I can select a date range (e.g., January 2025)
+2. **And** The system generates a report showing:
+   - Total Stipend Funded (Deposits)
+   - Total Employee Spending (Usage)
+   - Eligible Tax Deduction (150% of Spending)
+   - Estimated Tax Savings (Deduction x 30% Corporate Tax Rate)
+3. **And** The report includes a detailed breakdown by employee:
+   - Employee Name
+   - Amount Spent
+   - Tax Contribution
+4. **And** I can download the report as **PDF** (formatted for FIRS submission) or **CSV** (for internal analysis)
+5. **And** The PDF includes a legal disclaimer: "Consult your tax advisor for filing"
+6. **And** The generated report record is logged in the system for audit purposes
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>Product Requirements Document</title>
+        <section>Tax Compliance Features</section>
+        <snippet>Employer welfare spending report (supports 50% additional tax deduction claim). Tax savings calculator (shows employee + employer savings under 2025 provisions).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 4.3: Employer Welfare Spending Report</section>
+        <snippet>Generate a monthly welfare spending report to claim the 50% additional tax deduction. Calculate: Total Stipend Funded, Total Employee Spending, Eligible Tax Deduction (150% of Spending).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Tax Compliance</section>
+        <snippet>Tax Compliance features mapped to server/procedures/tax and modules/reports with data models tax_reports, rent_receipts. Implementation pattern: Server Actions for mutations/generation.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <item>
+        <path>src/lib/pdf-generator.ts</path>
+        <kind>utility</kind>
+        <symbol>renderRentReceiptPdf</symbol>
+        <lines>17-27</lines>
+        <reason>Reuse this pattern for rendering PDF buffers from React components. Create similar renderWelfareReportPdf function.</reason>
+      </item>
+      <item>
+        <path>src/components/pdf/RentReceipt.tsx</path>
+        <kind>component</kind>
+        <symbol>RentReceipt</symbol>
+        <lines>1-181</lines>
+        <reason>Reuse Roboto font registration and layout styles (official header, signature box, A4 size).</reason>
+      </item>
+      <item>
+        <path>src/server/actions/generateRentReceipt.ts</path>
+        <kind>server-action</kind>
+        <symbol>generateRentReceipt</symbol>
+        <lines>41-143</lines>
+        <reason>Reference implementation for generating PDF, IDOR protection (auth check), rate limiting, and Vercel Blob upload.</reason>
+      </item>
+      <item>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>Schema Definition</symbol>
+        <lines>1-362</lines>
+        <reason>Need to add tax_reports table here. Reference users, organizations, transactions, and wallets tables for report data queries.</reason>
+      </item>
+      <item>
+        <path>src/lib/rate-limit.ts</path>
+        <kind>utility</kind>
+        <symbol>actionRateLimiter</symbol>
+        <reason>Use for rate limiting the report generation action.</reason>
+      </item>
+    </code>
+    <dependencies>
+      <dependency key="react-pdf">@react-pdf/renderer ^4.3.1</dependency>
+      <dependency key="drizzle-orm">drizzle-orm ^0.44.7</dependency>
+      <dependency key="vercel-blob">@vercel/blob ^2.0.0</dependency>
+      <dependency key="clerk">@clerk/nextjs ^6.35.4</dependency>
+      <dependency key="date-fns">date-fns ^4.1.0 (useful for date range handling)</dependency>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Security: Verify auth().userId matches an admin of the requesting organization_id.</constraint>
+    <constraint>Compliance: PDF must use Roboto font for proper Naira symbol rendering.</constraint>
+    <constraint>Architecture: Use Procedure pattern (src/server/procedures/tax) for complex tax calculation logic to keep Server Actions clean.</constraint>
+    <constraint>Audit: Log the generation event to tax_reports table.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>generateWelfareSpendingReport</name>
+      <kind>Server Action</kind>
+      <signature>async (orgId: string, startDate: string, endDate: string, format: 'pdf' | 'csv') =&gt; Promise&lt;ActionResponse&lt;{ reportId: string, url: string }&gt;&gt;</signature>
+      <path>src/server/actions/generateWelfareSpendingReport.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Use Vitest for unit testing calculation logic. Mock database calls. Ensure math precision (use integer math similar to currency handling).</standards>
+    <locations>src/server/procedures/tax/__tests__</locations>
+    <ideas>
+      <idea>Test calculation of 150% deduction correctly handles floating point (use kobo integers)</idea>
+      <idea>Test authorization fails if user is not an org admin</idea>
+      <idea>Test date filtering correctly includes/excludes transactions at boundaries</idea>
+    </ideas>
+  </tests>
+</story-context>

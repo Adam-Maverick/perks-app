@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { searchDeals } from './deals';
 
 // Mock the database and schema

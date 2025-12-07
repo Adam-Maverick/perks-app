@@ -1,0 +1,227 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>1</storyId>
+    <title>Tax Shield View (Employee Dashboard)</title>
+    <status>drafted</status>
+    <generatedAt>2025-12-04T17:28:45.473Z</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/4-1-tax-shield-view-employee-dashboard.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>employee</asA>
+    <iWant>see how much I've contributed to my employer's tax savings</iWant>
+    <soThat>feel valued and understand the platform's impact</soThat>
+    <tasks>
+      <task id="1" title="Create TaxShieldWidget Component">
+        <item>Design the widget UI with Electric Lime color (#5FA83B - accessible version per Epic 2)</item>
+        <item>Add progress bar or animated counter for tax savings</item>
+        <item>Include tooltip with Nigeria Tax Act 2025 explanation</item>
+        <item>Ensure responsive design for mobile PWA</item>
+      </task>
+      <task id="2" title="Implement Server Action for Tax Calculation">
+        <item>Create `calculateEmployeeTaxContribution(userId)` Server Action in `src/server/actions`</item>
+        <item>Query `transactions` table where `source = 'STIPEND_WALLET'`</item>
+        <item>Calculate: (Total Stipend Spent × 1.5 × Employer Tax Rate)</item>
+        <item>Handle edge cases: no transactions, different employer tax rates</item>
+        <item>Return standardized response: <![CDATA[{ success: boolean, data?: T, error?: string }]]></item>
+      </task>
+      <task id="3" title="Integrate with Employee Dashboard">
+        <item>Add TaxShieldWidget to `/dashboard/employee` page</item>
+        <item>Use TanStack Query for data fetching and real-time updates</item>
+        <item>Handle loading states and error cases gracefully</item>
+        <item>Position widget prominently on dashboard</item>
+      </task>
+      <task id="4" title="Add Animation and Polish">
+        <item>Implement Framer Motion animations for counter updates</item>
+        <item>Add smooth transitions for real-time updates</item>
+        <item>Ensure animations are performant on mobile devices</item>
+        <item>Test accessibility (reduced motion preferences)</item>
+      </task>
+      <task id="5" title="Create Unit Tests">
+        <item>Test calculation logic in Server Action</item>
+        <item>Test TaxShieldWidget component rendering</item>
+        <item>Test real-time updates with TanStack Query</item>
+        <item>Test edge cases (zero transactions, calculation errors)</item>
+      </task>
+      <task id="6" title="Integration Testing">
+        <item>Create `scripts/test-tax-shield.ts` for full flow testing</item>
+        <item>Test with real stipend wallet transactions</item>
+        <item>Verify calculations match expected tax savings</item>
+        <item>Test real-time updates after new transactions</item>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Given I have made purchases using my stipend wallet When I view my employee dashboard Then I see a "Tax Shield" widget showing my cumulative contribution (e.g., "You've helped save ₦45,000 in taxes!")</criterion>
+    <criterion id="2">The widget displays a progress bar or animated counter</criterion>
+    <criterion id="3">A tooltip explains: "Your employer gets 150% tax deduction on stipend spending under Nigeria Tax Act 2025"</criterion>
+    <criterion id="4">The calculation is: (Total Stipend Spent × 1.5 × Employer Tax Rate)</criterion>
+    <criterion id="5">The widget updates in real-time after each transaction</criterion>
+    <criterion id="6">The UI uses Electric Lime (#5FA83B - accessible version per Epic 2) for the savings indicator</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/prd.md</path>
+        <title>Product Requirements Document</title>
+        <section>Functional Requirements Inventory - FR3</section>
+        <snippet>FR3: Tax Shield View: Employees can view their personal contribution to their employer's tax savings (gamification).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics Breakdown</title>
+        <section>Story 4.1: Tax Shield View (Employee Dashboard)</section>
+        <snippet>Acceptance Criteria: Given I have made purchases using my stipend wallet When I view my employee dashboard Then I see a "Tax Shield" widget showing my cumulative contribution (e.g., "You've helped save ₦45,000 in taxes!") And The widget displays a progress bar or animated counter And A tooltip explains: "Your employer gets 150% tax deduction on stipend spending under Nigeria Tax Act 2025" And The calculation is: (Total Stipend Spent × 1.5 × Employer Tax Rate) And The widget updates in real-time after each transaction And The UI uses Electric Lime (#96E072) for the savings indicator</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Implementation Patterns - Server Actions</section>
+        <snippet>All data mutations (creates, updates, deletes) MUST use Next.js Server Actions. Pattern: Define actions in src/server/actions. Validation: Use Zod to validate all inputs. Error Handling: Return a standardized ActionResponse type { success: boolean, data?: T, error?: string }.</snippet>
+      </doc>
+      <doc>
+        <path>docs/ux-design.md</path>
+        <title>UX Design Specifications</title>
+        <section>Dashboard Widgets</section>
+        <snippet>Tax Shield Widget: Layout: Card with rounded corners, subtle shadow. Colors: Electric Lime (#5FA83B - accessible version per Epic 2) for primary elements, Electric Royal Blue (#2563EB) for secondary. Typography: Outfit for headings (24px "Tax Shield"), Inter for body text (16px). Animation: Smooth counter animation when value changes (2-second duration). Tooltip: Hover/focus reveals explanation text. Responsive: Full width on mobile, fixed width on desktop. Accessibility: Screen reader support, keyboard navigation. Note: Color updated from #96E072 to #5FA83B for WCAG contrast compliance.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>src/app/(dashboard)/dashboard/employee/page.tsx</path>
+        <kind>component</kind>
+        <symbol>EmployeeDashboard</symbol>
+        <lines>55-108</lines>
+        <reason>Existing dashboard layout with placeholder Tax Shield widget that needs to be replaced with functional component</reason>
+      </artifact>
+      <artifact>
+        <path>src/db/schema.ts</path>
+        <kind>schema</kind>
+        <symbol>transactions</symbol>
+        <lines>92-113</lines>
+        <reason>Transaction table schema with userId, amount, and status fields needed for tax calculation queries</reason>
+      </artifact>
+      <artifact>
+        <path>src/server/actions/payments.ts</path>
+        <kind>server-action</kind>
+        <symbol>createEscrowTransaction</symbol>
+        <lines>1-50</lines>
+        <reason>Example Server Action pattern with Zod validation and standardized response format to follow</reason>
+      </artifact>
+      <artifact>
+        <path>src/components/modules/employee/EmployeeProfile.tsx</path>
+        <kind>component</kind>
+        <symbol>EmployeeProfile</symbol>
+        <lines>1-30</lines>
+        <reason>Existing employee dashboard component pattern for consistent styling and structure</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <dependency>
+        <ecosystem>npm</ecosystem>
+        <package>next</package>
+        <version>15.x</version>
+        <reason>Framework for Server Actions and App Router</reason>
+      </dependency>
+      <dependency>
+        <ecosystem>npm</ecosystem>
+        <package>@tanstack/react-query</package>
+        <version>latest</version>
+        <reason>Client-side data fetching with real-time updates</reason>
+      </dependency>
+      <dependency>
+        <ecosystem>npm</ecosystem>
+        <package>framer-motion</package>
+        <version>latest</version>
+        <reason>Animation library for smooth counter transitions</reason>
+      </dependency>
+      <dependency>
+        <ecosystem>npm</ecosystem>
+        <package>drizzle-orm</package>
+        <version>latest</version>
+        <reason>Database ORM for transaction queries</reason>
+      </dependency>
+      <dependency>
+        <ecosystem>npm</ecosystem>
+        <package>zod</package>
+        <version>latest</version>
+        <reason>Input validation for Server Actions</reason>
+      </dependency>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Formula must be exactly: (Total Stipend Spent × 1.5 × Employer Tax Rate)</constraint>
+    <constraint>Only count COMPLETED transactions from STIPEND_WALLET source</constraint>
+    <constraint>Real-time accuracy critical for user trust</constraint>
+    <constraint>Animations must be smooth on low-end Android devices</constraint>
+    <constraint>Widget should load quickly even with complex calculations</constraint>
+    <constraint>Consider progressive enhancement for older browsers</constraint>
+    <constraint>Screen readers must announce tax savings amounts clearly</constraint>
+    <constraint>Keyboard navigation support for tooltips</constraint>
+    <constraint>High contrast mode compatibility</constraint>
+    <constraint>Reduced motion preferences respected</constraint>
+    <constraint>Employer tax rate should be configurable per organization (default 30%)</constraint>
+    <constraint>Tax calculations involve financial data - ensure proper access controls</constraint>
+    <constraint>Only show employee's own tax contribution (not other employees)</constraint>
+    <constraint>No sensitive employer tax rate data exposed to employees</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>calculateEmployeeTaxContribution</name>
+      <kind>server-action</kind>
+      <signature><![CDATA[calculateEmployeeTaxContribution(userId: string): Promise<{ success: boolean, data?: { taxSavings: number, totalSpent: number }, error?: string }>]]></signature>
+      <path>src/server/actions/calculateEmployeeTaxContribution.ts</path>
+    </interface>
+    <interface>
+      <name>TaxShieldWidget</name>
+      <kind>react-component</kind>
+      <signature><![CDATA[TaxShieldWidget(props: { taxSavings: number, totalSpent: number }): JSX.Element]]></signature>
+      <path>src/components/modules/dashboard/TaxShieldWidget.tsx</path>
+    </interface>
+    <interface>
+      <name>useEmployeeTaxContribution</name>
+      <kind>tanstack-query-hook</kind>
+      <signature><![CDATA[useEmployeeTaxContribution(userId: string): UseQueryResult<{ taxSavings: number, totalSpent: number }>]]></signature>
+      <path>src/hooks/queries/useEmployeeTaxContribution.ts</path>
+    </interface>
+    <interface>
+      <name>transactions</name>
+      <kind>database-table</kind>
+      <signature><![CDATA[transactions: { id: uuid, userId: text, amount: integer, status: transactionStatusEnum, ... }]]></signature>
+      <path>src/db/schema.ts</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      <standard>Test framework: Vitest (configured in prep sprint Day 1)</standard>
+      <standard>Coverage target: 100% for tax calculation logic</standard>
+      <standard>Test files: src/**/__tests__/*.test.ts pattern</standard>
+      <standard>Mock database and external services</standard>
+      <standard>Test valid and invalid scenarios</standard>
+      <standard>Test error handling (API failures, network errors)</standard>
+    </standards>
+    <locations>
+      <location>src/components/modules/dashboard/__tests__/TaxShieldWidget.test.tsx</location>
+      <location>src/server/actions/__tests__/calculateEmployeeTaxContribution.test.ts</location>
+      <location>src/hooks/queries/__tests__/useEmployeeTaxContribution.test.ts</location>
+      <location>scripts/test-tax-shield.ts</location>
+    </locations>
+    <ideas>
+      <idea>Test calculation Server Action with various transaction amounts</idea>
+      <idea>Test component rendering with different tax savings values</idea>
+      <idea>Test animation triggers on value changes</idea>
+      <idea>Mock TanStack Query for isolated component testing</idea>
+      <idea>Full flow: Create stipend transaction → Verify dashboard updates → Check calculation accuracy</idea>
+      <idea>Real-time updates: Make transaction → Verify widget refreshes automatically</idea>
+      <idea>Edge cases: Zero transactions, calculation errors, network failures</idea>
+      <idea>Performance: Widget load time &lt; 500ms on 3G connections</idea>
+      <idea>Animation frame rate > 60fps on mobile devices</idea>
+      <idea>Memory usage remains stable during animations</idea>
+    </ideas>
+  </tests>
+</story-context>
