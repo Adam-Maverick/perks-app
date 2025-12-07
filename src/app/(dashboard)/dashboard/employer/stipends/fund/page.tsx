@@ -9,10 +9,10 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { getOrganizationEmployees, initiateFundingPayment } from '@/server/actions/stipends';
 
-// Validation schema
+// Validation schema (Zod 4 compatible)
 const fundingSchema = z.object({
     amountPerEmployee: z
-        .number({ required_error: 'Amount is required', invalid_type_error: 'Amount must be a number' })
+        .coerce.number()
         .min(5000, 'Minimum amount is ₦5,000')
         .max(50000, 'Maximum amount is ₦50,000'),
 });
