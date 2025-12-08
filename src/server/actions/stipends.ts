@@ -92,6 +92,7 @@ export async function initiateFundingPayment(
     console.log('NEXT_PUBLIC_APP_URL:', NEXT_PUBLIC_APP_URL);
     console.log('All PAYSTACK env keys:', Object.keys(process.env).filter(k => k.includes('PAYSTACK')));
     console.log('All env keys count:', Object.keys(process.env).length);
+    console.log('All env keys starting with P:', Object.keys(process.env).filter(k => k.startsWith('P')));
 
     // Validate input
     try {
