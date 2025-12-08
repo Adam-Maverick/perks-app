@@ -113,6 +113,10 @@ export default function StipendFundingPage() {
 
     // Handle form submission
     const onSubmit = async (data: FundingFormData) => {
+        console.log('=== onSubmit called ===');
+        console.log('Form data:', data);
+        console.log('Selected employees:', Array.from(selectedEmployees));
+
         if (selectedEmployees.size === 0) {
             toast.error('Please select at least one employee');
             return;
@@ -125,12 +129,16 @@ export default function StipendFundingPage() {
             const amountInKobo = data.amountPerEmployee * 100;
             const employeeIds = Array.from(selectedEmployees);
 
+            console.log('Calling initiateFundingPayment with:', { employeeIds, amountInKobo });
             const result = await initiateFundingPayment(employeeIds, amountInKobo);
+            console.log('initiateFundingPayment result:', result);
 
             if (result.success && result.data) {
                 // Redirect to Paystack
+                console.log('Redirecting to:', result.data.authorizationUrl);
                 window.location.href = result.data.authorizationUrl;
             } else {
+                console.error('Payment initiation failed:', result.error);
                 toast.error(result.error || 'Failed to initiate payment');
                 setIsSubmitting(false);
             }
