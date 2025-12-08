@@ -39,3 +39,4 @@ next-env.d.ts
 # local backup tools
 qwen_bridge.ipynb
 deepseek_bridge.ipynb
+.env.vercel
