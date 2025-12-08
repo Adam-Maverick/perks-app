@@ -22,6 +22,13 @@ const nextConfig: NextConfig = {
             },
         ],
     },
+    // Ensure server actions can access environment variables
+    experimental: {
+        serverActions: {
+            bodySizeLimit: '2mb',
+        },
+    },
 };
 
 export default withSerwist(nextConfig);
+

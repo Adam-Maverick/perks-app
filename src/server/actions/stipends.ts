@@ -79,6 +79,19 @@ export async function initiateFundingPayment(
     amountPerEmployee: number
 ): Promise<ActionResponse<{ authorizationUrl: string; reference: string }>> {
     const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY?.trim();
+    const NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL;
+
+    // Debug logging for environment variable (remove after debugging)
+    console.log('=== initiateFundingPayment DEBUG ===');
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('VERCEL:', process.env.VERCEL);
+    console.log('VERCEL_ENV:', process.env.VERCEL_ENV);
+    console.log('PAYSTACK_SECRET_KEY exists:', !!PAYSTACK_SECRET_KEY);
+    console.log('PAYSTACK_SECRET_KEY length:', PAYSTACK_SECRET_KEY?.length || 0);
+    console.log('PAYSTACK_SECRET_KEY prefix:', PAYSTACK_SECRET_KEY?.substring(0, 8));
+    console.log('NEXT_PUBLIC_APP_URL:', NEXT_PUBLIC_APP_URL);
+    console.log('All PAYSTACK env keys:', Object.keys(process.env).filter(k => k.includes('PAYSTACK')));
+    console.log('All env keys count:', Object.keys(process.env).length);
 
     // Validate input
     try {
@@ -96,6 +109,7 @@ export async function initiateFundingPayment(
     }
 
     if (!PAYSTACK_SECRET_KEY) {
+        console.error('PAYSTACK_SECRET_KEY is missing or empty!');
         return { success: false, error: 'Payment configuration missing' };
     }
 
